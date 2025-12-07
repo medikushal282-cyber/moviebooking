@@ -4,15 +4,19 @@ let channel = null;
 let connection = null;
 
 const connectRabbitMQ = async () => {
+    // Skip if RABBITMQ_URL is not set
+    if (!process.env.RABBITMQ_URL) {
+        console.log('RabbitMQ: Skipping connection (RABBITMQ_URL not set)');
+        return null;
+    }
+
     try {
         if (channel) {
             return channel;
         }
 
-        const amqpServer = process.env.RABBITMQ_URL || 'amqp://localhost';
-        connection = await amqp.connect(amqpServer);
+        connection = await amqp.connect(process.env.RABBITMQ_URL);
 
-        // Handle connection errors/closures
         connection.on('error', (err) => {
             console.error('❌ RabbitMQ Connection Error:', err.message);
             channel = null;
@@ -26,23 +30,22 @@ const connectRabbitMQ = async () => {
         });
 
         channel = await connection.createChannel();
-
-        // Assert queues we need
         await channel.assertQueue('email_queue', { durable: true });
 
         console.log('✅ RabbitMQ Connected');
         return channel;
     } catch (error) {
         console.error('❌ RabbitMQ Connection Error:', error.message);
-        // Retry connection after 5 seconds
-        setTimeout(connectRabbitMQ, 5000);
+        // Don't retry in production without proper config
+        return null;
     }
 };
 
 const publishToQueue = async (queueName, data) => {
     try {
         if (!channel) {
-            await connectRabbitMQ();
+            console.log('RabbitMQ not connected, skipping email queue');
+            return; // Silently skip if not connected
         }
         channel.sendToQueue(
             queueName,
@@ -52,7 +55,7 @@ const publishToQueue = async (queueName, data) => {
         console.log(`Sent to ${queueName}:`, data);
     } catch (error) {
         console.error('Error publishing to queue:', error.message);
-        throw error; // Throw error so controller can handle fallback
+        // Don't throw - just log and continue
     }
 };
 

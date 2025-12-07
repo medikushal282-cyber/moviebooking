@@ -5,6 +5,13 @@ require('dotenv').config();
 const startWorker = async () => {
     try {
         const channel = await connectRabbitMQ();
+
+        // Skip if RabbitMQ is not available
+        if (!channel) {
+            console.log('👷 Email Worker: Skipping (RabbitMQ not available)');
+            return;
+        }
+
         const queue = 'email_queue';
 
         console.log(`👷 Email Worker waiting for messages in ${queue}...`);
