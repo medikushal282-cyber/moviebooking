@@ -107,6 +107,31 @@ app.get('/api/health', (req, res) => {
     res.json({ success: true, message: 'Server is running' });
 });
 
+// Debug endpoint
+app.get('/api/debug-showtimes', async (req, res) => {
+    const Showtime = require('./models/Showtime');
+    const Movie = require('./models/Movie');
+
+    const now = new Date();
+    const totalShowtimes = await Showtime.countDocuments();
+    const futureShowtimes = await Showtime.countDocuments({ startTime: { $gte: now } });
+    const sampleShowtime = await Showtime.findOne().populate('movie', 'title');
+    const sampleMovieId = await Movie.findOne({}, '_id title');
+    const showtimesForSample = sampleMovieId ? await Showtime.find({ movie: sampleMovieId._id, startTime: { $gte: now } }).limit(3) : [];
+
+    res.json({
+        serverTime: now.toISOString(),
+        totalShowtimes,
+        futureShowtimes,
+        sampleShowtime: sampleShowtime ? {
+            movieTitle: sampleShowtime.movie?.title,
+            startTime: sampleShowtime.startTime
+        } : null,
+        sampleMovie: sampleMovieId,
+        showtimesForSampleMovie: showtimesForSample.length
+    });
+});
+
 // Regenerate showtimes with future dates
 app.get('/api/regenerate-showtimes', async (req, res) => {
     try {
