@@ -117,7 +117,7 @@ app.get('/api/regenerate-showtimes', async (req, res) => {
         // Delete old showtimes
         await Showtime.deleteMany({});
 
-        const movies = await Movie.find().limit(20);
+        const movies = await Movie.find(); // All movies
         const theatres = await Theatre.find();
 
         if (movies.length === 0 || theatres.length === 0) {
