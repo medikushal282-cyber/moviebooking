@@ -28,7 +28,7 @@ const requestLogger = require('./middleware/requestLogger');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
-// Security headers - configure CSP to allow CDN scripts
+// Security headers - configure CSP to allow CDN scripts and inline handlers
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
@@ -37,7 +37,9 @@ app.use(helmet({
                 "https://cdn.tailwindcss.com",
                 "https://unpkg.com",
                 "https://cdn.jsdelivr.net",
-                "https://cdnjs.cloudflare.com"],
+                "https://cdnjs.cloudflare.com",
+                "https://api.qrserver.com"],
+            scriptSrcAttr: ["'unsafe-inline'"],
             styleSrc: ["'self'", "'unsafe-inline'",
                 "https://cdn.tailwindcss.com",
                 "https://fonts.googleapis.com",
