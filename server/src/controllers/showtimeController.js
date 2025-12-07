@@ -7,7 +7,8 @@ const Theatre = require('../models/Theatre');
 // @access  Public
 exports.getShowtimesByMovie = async (req, res, next) => {
     try {
-        const showtimes = await Showtime.find({ movie: req.params.movieId, startTime: { $gte: new Date() } })
+        // Temporarily removed date filter for debugging
+        const showtimes = await Showtime.find({ movie: req.params.movieId })
             .populate('theatre', 'name location city')
             .sort({ startTime: 1 });
 
