@@ -52,12 +52,16 @@ app.use(helmet({
     crossOriginEmbedderPolicy: false
 }));
 
-// Rate limiting
+// Rate limiting - more generous for production
 const limiter = rateLimit({
     windowMs: 10 * 60 * 1000, // 10 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
-    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    max: 500, // limit each IP to 500 requests per windowMs
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: (req) => {
+        // Skip rate limiting for setup endpoints
+        return req.path.includes('seed') || req.path.includes('regenerate');
+    }
 });
 app.use(limiter);
 
