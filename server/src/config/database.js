@@ -2,7 +2,14 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
     try {
-        const conn = await mongoose.connect(process.env.MONGO_URI, {
+        // Support both MONGO_URI and MONGO_URL (Railway uses MONGO_URL)
+        const mongoUri = process.env.MONGO_URI || process.env.MONGO_URL;
+
+        if (!mongoUri) {
+            throw new Error('MongoDB connection string not found. Set MONGO_URI or MONGO_URL environment variable.');
+        }
+
+        const conn = await mongoose.connect(mongoUri, {
             useNewUrlParser: true,
             useUnifiedTopology: true
         });
