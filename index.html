@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title> Cinematics | Movie Magic Awaits</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <link rel="stylesheet" href="style.css" />
+
+    <style>
+        body {
+            width: 100%;
+            min-height: 100vh;
+            color: #e6eef6;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            background: transparent;
+        }
+
+        /* ============================================================
+   GLOWING LOGO
+============================================================ */
+        #bys-logo {
+            animation: logoPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes logoPulse {
+            0% {
+                text-shadow: 0 0 7px rgba(0, 255, 255, 0.4);
+            }
+
+            50% {
+                text-shadow: 0 0 18px rgba(0, 255, 255, 0.9);
+            }
+
+            100% {
+                text-shadow: 0 0 7px rgba(0, 255, 255, 0.4);
+            }
+        }
+
+        /* ============================================================
+   CURSOR GLOW TRAIL
+============================================================ */
+        #cursor-glow {
+            position: fixed;
+            width: 160px;
+            height: 160px;
+            pointer-events: none;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 150, 255, 0.25), rgba(0, 0, 0, 0));
+            filter: blur(40px);
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        /* ============================================================
+   3D MOVIE CARD
+============================================================ */
+        .movie-card-container {
+            perspective: 1000px;
+        }
+
+        .movie-card {
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+
+            /* ⭐ UPDATED TRANSPARENT BLACK GRADIENT ⭐ */
+            background: linear-gradient(180deg,
+                    rgba(0, 0, 0, 0.65) 0%,
+                    rgba(0, 0, 0, 0.45) 40%,
+                    rgba(0, 0, 0, 0.25) 100%);
+
+            transform-style: preserve-3d;
+            transition: all 0.45s cubic-bezier(0.23, 1, 0.32, 1);
+
+            opacity: 0;
+            transform: translateY(20px);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .movie-card.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .movie-card:hover {
+            transform: rotateY(12deg) rotateX(8deg) scale(1.07);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        /* SHINE SLIDE */
+        .movie-card:before,
+        .movie-card:after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.25));
+            transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .movie-card:hover:before {
+            transform: translateX(-100%);
+        }
+
+        .movie-card:hover:after {
+            transform: translateX(100%);
+        }
+
+        /* IMAGE ONLY AT TOP (2:3) — STATIC */
+        .movie-thumb-wrapper {
+            width: 100%;
+            aspect-ratio: 2 / 3;
+            overflow: hidden;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .movie-thumb {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* CONTENT AREA */
+        .movie-content {
+            position: relative;
+            z-index: 5;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 16px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Animated Gradient Background */
+        .gradient-bg-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(40deg, rgb(40, 10, 30), rgb(20, 0, 25));
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .gradients-bg {
+            width: 100%;
+            height: 100%;
+            filter: url(#blurMeIndex) blur(40px);
+            opacity: 0.4;
+        }
+
+        .gradient-blob {
+            position: absolute;
+            width: 80%;
+            height: 80%;
+            top: calc(50% - 40%);
+            left: calc(50% - 40%);
+            mix-blend-mode: hard-light;
+            opacity: 1;
+        }
+
+        .gradient-blob-1 {
+            background: radial-gradient(circle at center, rgba(255, 20, 147, 1) 0%, rgba(255, 20, 147, 0) 50%) no-repeat;
+            transform-origin: center center;
+            animation: moveFirst 20s ease infinite;
+        }
+
+        .gradient-blob-2 {
+            background: radial-gradient(circle at center, rgba(186, 85, 211, 0.8) 0%, rgba(186, 85, 211, 0) 50%) no-repeat;
+            transform-origin: calc(50% - 400px);
+            animation: moveSecond 20s ease infinite;
+        }
+
+        .gradient-blob-3 {
+            background: radial-gradient(circle at center, rgba(255, 105, 180, 0.8) 0%, rgba(255, 105, 180, 0) 50%) no-repeat;
+            transform-origin: calc(50% + 400px);
+            animation: moveThird 20s ease infinite;
+        }
+
+        .gradient-blob-4 {
+            background: radial-gradient(circle at center, rgba(199, 21, 133, 0.8) 0%, rgba(199, 21, 133, 0) 50%) no-repeat;
+            transform-origin: calc(50% - 200px);
+            animation: moveFourth 20s ease infinite;
+            opacity: 0.7;
+        }
+
+        .gradient-blob-5 {
+            background: radial-gradient(circle at center, rgba(218, 112, 214, 0.8) 0%, rgba(218, 112, 214, 0) 50%) no-repeat;
+            transform-origin: calc(50% - 800px) calc(50% + 800px);
+            animation: moveFifth 20s ease infinite;
+        }
+
+        .interactive-blob {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(circle at center, rgba(255, 0, 255, 0.8) 0%, rgba(255, 0, 255, 0) 50%) no-repeat;
+            mix-blend-mode: hard-light;
+            opacity: 0.7;
+            pointer-events: none;
+            transition: transform 0.1s ease-out;
+        }
+
+        @keyframes moveFirst {
+
+            0%,
+            100% {
+                transform: translate(0, 0);
+            }
+
+            50% {
+                transform: translate(100px, 100px);
+            }
+        }
+
+        @keyframes moveSecond {
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            33% {
+                transform: translate(-100px, 200px) rotate(120deg);
+            }
+
+            66% {
+                transform: translate(100px, -100px) rotate(240deg);
+            }
+        }
+
+        @keyframes moveThird {
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            50% {
+                transform: translate(-200px, -100px) rotate(180deg);
+            }
+        }
+
+        @keyframes moveFourth {
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            33% {
+                transform: translate(200px, -50px) rotate(-120deg);
+            }
+
+            66% {
+                transform: translate(-150px, 150px) rotate(-240deg);
+            }
+        }
+
+        @keyframes moveFifth {
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            25% {
+                transform: translate(150px, 100px) rotate(90deg);
+            }
+
+            50% {
+                transform: translate(-100px, 200px) rotate(180deg);
+            }
+
+            75% {
+                transform: translate(100px, -150px) rotate(270deg);
+            }
+        }
+
+        .animate-gradient-x {
+            background-size: 200% 200%;
+            animation: gradient-x 3s ease infinite;
+        }
+
+        @keyframes gradient-x {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* Comic Bubble Styles */
+        .comic-bubble {
+            position: absolute;
+            z-index: 50;
+            width: 300px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2.5rem;
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 800;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            text-transform: uppercase;
+            text-align: center;
+            letter-spacing: 0.5px;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            text-decoration: none;
+
+            /* Background Image */
+            background-image: url('dark_comic_bubble_v2.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+
+            /* Remove other styles */
+            background-color: transparent;
+            border: none;
+            box-shadow: none;
+            backdrop-filter: none;
+        }
+
+        /* Remove SVG styles */
+        .bubble-bg-svg,
+        .bubble-path {
+            display: none;
+        }
+
+        .bubble-content {
+            position: relative;
+            z-index: 1;
+            /* Adjust padding to fit text inside the bubble image */
+            padding: 0 1rem;
+        }
+
+        .comic-bubble:hover {
+            transform: scale(1.05) rotate(-2deg);
+            color: #fff;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
+        }
+
+        .comic-bubble-left {
+            top: -10rem;
+            /* Moved even higher */
+            left: -8rem;
+            transform: rotate(-5deg);
+        }
+
+        .comic-bubble-right {
+            top: -10rem;
+            /* Moved even higher */
+            right: -8rem;
+            transform: rotate(5deg);
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 768px) {
+            .comic-bubble {
+                display: none;
+                /* Hide on mobile to avoid clutter */
+            }
+        }
+    </style>
+</head>
+
+
+<body class="text-white">
+
+
+
+    <!-- Animated Gradient Background -->
+    <div class="gradient-bg-container">
+        <svg class="hidden">
+            <defs>
+                <filter id="blurMeIndex">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+                    <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8"
+                        result="goo" />
+                    <feBlend in="SourceGraphic" in2="goo" />
+                </filter>
+            </defs>
+        </svg>
+        <div class="gradients-bg">
+            <div class="gradient-blob gradient-blob-1"></div>
+            <div class="gradient-blob gradient-blob-2"></div>
+            <div class="gradient-blob gradient-blob-3"></div>
+            <div class="gradient-blob gradient-blob-4"></div>
+            <div class="gradient-blob gradient-blob-5"></div>
+            <div class="interactive-blob" id="interactiveBlobIndex"></div>
+        </div>
+    </div>
+
+    <!-- 🔥 Cursor Glow -->
+    <div id="cursor-glow"></div>
+
+    <!-- ⭐ FIXED LOGO -->
+
+
+    <!-- Background Layer -->
+    <div id="etheral-shadow-bg"></div>
+
+    <div style="position:relative; z-index:1;">
+
+        <custom-navbar></custom-navbar>
+        <div class="h-20"></div>
+
+        <main class="container mx-auto px-8 md:px-12 py-8">
+
+
+            <!-- NEON HEADER CONTAINER -->
+            <div class="relative w-full max-w-6xl mx-auto mb-16 mt-40">
+                <!-- Left Bubble -->
+                <a href="theatres.html" class="comic-bubble comic-bubble-left hidden md:flex">
+                    <span class="bubble-content">
+                        Official seat booking app for 40+ theatres! <span class="text-blue-900 block mt-1 font-bold"
+                            style="-webkit-text-stroke: 1px white; paint-order: stroke fill;">See the list →</span>
+                    </span>
+                </a>
+
+                <!-- Header -->
+                <div class="flex justify-center">
+                    <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight text-center select-none">
+                        <span
+                            class="bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 drop-shadow-[0_0_10px_rgba(236,72,153,0.5)] animate-gradient-x">
+                            BookYourShow
+                        </span>
+                    </h1>
+                </div>
+
+                <!-- Right Bubble -->
+                <a href="movies.html" class="comic-bubble comic-bubble-right hidden md:flex">
+                    <span class="bubble-content">
+                        Showing 20+ Movies Now! <span class="text-pink-900 block mt-1 font-bold"
+                            style="-webkit-text-stroke: 1px white; paint-order: stroke fill;">Check them out →</span>
+                    </span>
+                </a>
+            </div>
+
+            <!-- ============================
+     NOW PLAYING
+============================= -->
+            <section class="mb-10">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">Now Playing</h2>
+                    <a href="movies.html" class="text-primary-400 hover:underline flex items-center gap-1">
+                        View All <i data-feather="chevron-right" class="w-4 h-4"></i>
+                    </a>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
+                    id="now-playing-grid">
+                    <!-- Movie cards will be inserted here dynamically -->
+                </div>
+            </section>
+
+
+
+            <!-- ============================
+     COMING SOON
+============================= -->
+            <section class="mb-12">
+                <h2 class="text-2xl font-bold mb-6">Coming Soon</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
+                    id="coming-soon-grid">
+                    <!-- Coming soon cards will be inserted here dynamically -->
+                </div>
+            </section>
+
+
+
+
+            <script src="data.js"></script>
+            <script src="js/api.js"></script>
+            <script src="components/navbar.js"></script>
+            <script src="components/footer.js"></script>
+            <script src="components/movie-grid.js"></script>
+            <script src="script.js"></script>
+
+            <script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
+            <script src="components/waves-background.js"></script>
+
+            <script> feather.replace(); </script>
+
+            <!-- ============================================================
+     INTERACTIONS & DYNAMIC MOVIE RENDERING
+============================================================ -->
+            <script>
+
+                // Cursor glow
+                const glow = document.getElementById("cursor-glow");
+                document.addEventListener("mousemove", e => {
+                    glow.style.left = e.clientX + "px";
+                    glow.style.top = e.clientY + "px";
+                    glow.style.opacity = 1;
+                });
+
+                // Function to create movie card HTML
+                function createMovieCard(movie) {
+                    const hours = Math.floor(movie.duration / 60);
+                    const minutes = movie.duration % 60;
+                    const durationText = `${hours}h ${minutes}m`;
+
+                    return `
+                <div class="movie-card-container">
+                    <div class="movie-card">
+                        <!-- IMAGE -->
+                        <div class="movie-thumb-wrapper">
+                            <img src="${movie.img}" class="movie-thumb" alt="${movie.title}" />
+                        </div>
+
+                        ${movie.badge ? `
+                        <!-- BADGE -->
+                        <div class="absolute top-2 right-2 bg-primary-500 text-white text-s font-bold px-2 py-1 rounded z-10">
+                            ${movie.badge}
+                        </div>
+                        ` : ''}
+
+                        <!-- CONTENT -->
+                        <div class="movie-content">
+                            <h3 class="font-bold text-lg mb-1">${movie.title}</h3>
+
+                            <div class="flex items-center text-sm text-gray-300 mb-2">
+                                <span>${movie.age}</span>
+                                <span class="mx-2">•</span>
+                                <span>${durationText}</span>
+                            </div>
+
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <i data-feather="star" class="w-4 h-4 text-yellow-400"></i>
+                                    <span class="ml-1 font-medium">${movie.rating}</span>
+                                </div>
+
+                                <a href="book.html?movie=${encodeURIComponent(movie.title)}" class="book-btn">Book Now</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+                }
+
+                // Initialize page
+                document.addEventListener('DOMContentLoaded', async () => {
+                    const nowPlayingGrid = document.getElementById("now-playing-grid");
+                    const comingSoonGrid = document.getElementById("coming-soon-grid");
+
+                    // Show loading states
+                    showLoading(nowPlayingGrid);
+                    showLoading(comingSoonGrid);
+
+                    try {
+                        // Fetch Now Playing (first 8 movies)
+                        const nowPlayingResponse = await fetchMovies({ limit: 8 });
+                        if (nowPlayingResponse.success && nowPlayingResponse.data.length > 0) {
+                            nowPlayingGrid.innerHTML = '';
+                            nowPlayingResponse.data.forEach(movie => {
+                                nowPlayingGrid.innerHTML += createMovieCard(movie);
+                            });
+                        } else {
+                            showError(nowPlayingGrid, 'No movies found');
+                        }
+
+                        // Fetch Coming Soon (movies 9-15)
+                        const allMoviesResponse = await fetchMovies({ limit: 20 });
+                        if (allMoviesResponse.success && allMoviesResponse.data.length > 8) {
+                            comingSoonGrid.innerHTML = '';
+                            const comingSoonMovies = allMoviesResponse.data.slice(8, 15);
+                            comingSoonMovies.forEach(movie => {
+                                comingSoonGrid.innerHTML += createMovieCard(movie);
+                            });
+                        } else {
+                            showError(comingSoonGrid, 'No upcoming movies found');
+                        }
+
+                        // Replace feather icons
+                        feather.replace();
+
+                        // Fade cards in
+                        document.querySelectorAll(".movie-card").forEach((card, i) => {
+                            setTimeout(() => card.classList.add("show"), i * 100);
+                        });
+
+                    } catch (error) {
+                        console.error('Failed to load movies from API:', error);
+                        console.warn('Falling back to local data...');
+
+                        // Fallback to local data if API fails
+                        if (typeof getNowPlayingMovies === 'function' && typeof getComingSoonMovies === 'function') {
+                            nowPlayingGrid.innerHTML = '';
+                            const nowPlayingMock = getNowPlayingMovies();
+                            nowPlayingMock.forEach(movie => {
+                                nowPlayingGrid.innerHTML += createMovieCard(movie);
+                            });
+
+                            comingSoonGrid.innerHTML = '';
+                            const comingSoonMock = getComingSoonMovies();
+                            comingSoonMock.forEach(movie => {
+                                comingSoonGrid.innerHTML += createMovieCard(movie);
+                            });
+
+                            // Replace feather icons
+                            feather.replace();
+
+                            // Fade cards in
+                            document.querySelectorAll(".movie-card").forEach((card, i) => {
+                                setTimeout(() => card.classList.add("show"), i * 100);
+                            });
+                        } else {
+                            showError(nowPlayingGrid, 'Failed to load movies. Please check your connection.', () => location.reload());
+                            showError(comingSoonGrid, 'Failed to load movies.', () => location.reload());
+                        }
+                    }
+                });
+
+            </script>
+
+
+            <script>
+                // Interactive gradient blob that follows mouse
+                const interactiveBlobIndex = document.getElementById('interactiveBlobIndex');
+
+                if (interactiveBlobIndex) {
+                    let curX = 0;
+                    let curY = 0;
+                    let tgX = 0;
+                    let tgY = 0;
+
+                    document.addEventListener('mousemove', (e) => {
+                        tgX = e.clientX;
+                        tgY = e.clientY;
+                    });
+
+                    function animateBlobIndex() {
+                        curX += (tgX - curX) / 20;
+                        curY += (tgY - curY) / 20;
+                        interactiveBlobIndex.style.transform = `translate(${Math.round(curX)}px, ${Math.round(curY)}px)`;
+                        requestAnimationFrame(animateBlobIndex);
+                    }
+
+                    animateBlobIndex();
+                }
+            </script>
+
+</body>
+
+</html>

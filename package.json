@@ -1,0 +1,22 @@
+{
+  "name": "bookyourshow-cinematics",
+  "version": "1.0.0",
+  "description": "A beautiful movie booking web application with seat selection",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx -y http-server . -p 3000 -o",
+    "dev": "npx -y http-server . -p 3000 -o -c-1"
+  },
+  "keywords": [
+    "movies",
+    "booking",
+    "cinema"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "amqplib": "^0.10.9",
+    "nodemailer": "^7.0.10",
+    "xlsx": "^0.18.5"
+  }
+}

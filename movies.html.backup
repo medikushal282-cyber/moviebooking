@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Movies — Bookyourshow Cinematics</title>
+
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <style>
+        /* --------------------------------------------------------
+   GLOBAL PAGE BACKGROUND
+-------------------------------------------------------- */
+        body {
+            background: linear-gradient(180deg, #07060a 0%, #110a14 100%);
+            color: #e6eef6;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+        }
+
+        /* --------------------------------------------------------
+   3D MOVIE CARD SYSTEM
+-------------------------------------------------------- */
+
+        .movie-card-container {
+            perspective: 1000px;
+        }
+
+        .movie-card {
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(0, 0, 0, 0.20));
+            transform-style: preserve-3d;
+            transition: all 0.45s cubic-bezier(0.23, 1, 0.32, 1);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .movie-card:hover {
+            transform: rotateY(12deg) rotateX(6deg) scale(1.05);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.55);
+        }
+
+        .movie-card::before,
+        .movie-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.25));
+            transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .movie-card:hover::before {
+            transform: translateX(-100%);
+        }
+
+        .movie-card:hover::after {
+            transform: translateX(100%);
+        }
+
+        .movie-img {
+            width: 100%;
+            height: 24rem;
+            /* Taller card height */
+            object-fit: cover;
+            display: block;
+        }
+
+        .movie-body {
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(12px);
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .movie-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            margin-bottom: 0.35rem;
+            color: #fff;
+        }
+
+        .movie-meta {
+            display: flex;
+            gap: 0.5rem;
+            z-index: 2000;
+        }
+
+        .filter-left {
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        /* ------------------- UIVERSE SEARCH BAR (upgraded) ------------------- */
+
+        /* container and decorative grid */
+        .search-bar-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 70px;
+            margin: 0;
+            position: relative;
+        }
+
+        /* decorative grid removed */
+
+        .white,
+        .border,
+        .darkBorderBg,
+        .glow {
+            max-height: 70px;
+            max-width: 314px;
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            overflow: hidden;
+            z-index: -1;
+            border-radius: 12px;
+            filter: blur(3px);
+        }
+
+        .input {
+            background-color: #010201;
+            border: none;
+            width: 301px;
+            height: 56px;
+            border-radius: 10px;
+            color: white;
+            padding-inline: 59px;
+            font-size: 18px;
+            box-sizing: border-box;
+        }
+
+        .poda {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            min-height: 70px;
+            min-width: 314px;
+        }
+
+        .input::placeholder {
+            color: #c0b9c0;
+        }
+
+        .input:focus {
+            outline: none;
+        }
+
+        #input-mask {
+            display: none;
+        }
+
+        #pink-mask {
+            display: none;
+        }
+
+        /* position the search icon inside the input */
+        #search-icon {
+            position: absolute;
+            left: 20px;
+            top: 18px;
+            z-index: 11;
+            pointer-events: none;
+            color: #9f92a0;
+        }
+
+        .white {
+            max-height: 63px;
+            max-width: 307px;
+            border-radius: 10px;
+            filter: blur(2px);
+        }
+
+        .white::before {
+            content: "";
+            z-index: -2;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(83deg);
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background-repeat: no-repeat;
+            filter: brightness(1.4);
+            background-image: conic-gradient(rgba(0, 0, 0, 0) 0%, #a099d8, rgba(0, 0, 0, 0) 8%, rgba(0, 0, 0, 0) 50%, #dfa2da, rgba(0, 0, 0, 0) 58%);
+            transition: all 2s;
+        }
+
+        .border {
+            max-height: 59px;
+            max-width: 303px;
+            border-radius: 11px;
+            filter: blur(0.5px);
+        }
+
+        .border::before {
+            content: "";
+            z-index: -2;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(70deg);
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            filter: brightness(1.3);
+            background-repeat: no-repeat;
+            background-image: conic-gradient(#1c191c, #402fb5 5%, #1c191c 14%, #1c191c 50%, #cf30aa 60%, #1c191c 64%);
+            transition: all 2s;
+        }
+
+        .darkBorderBg {
+            max-height: 65px;
+            max-width: 312px;
+        }
+
+        .darkBorderBg::before {
+            content: "";
+            z-index: -2;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(82deg);
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background-repeat: no-repeat;
+            background-image: conic-gradient(rgba(0, 0, 0, 0), #18116a, rgba(0, 0, 0, 0) 10%, rgba(0, 0, 0, 0) 50%, #6e1b60, rgba(0, 0, 0, 0) 60%);
+            transition: all 2s;
+        }
+
+        .poda:hover>.darkBorderBg::before {
+            transform: translate(-50%, -50%) rotate(262deg);
+        }
+
+        .poda:hover>.glow::before {
+            transform: translate(-50%, -50%) rotate(240deg);
+        }
+
+        .poda:hover>.white::before {
+            transform: translate(-50%, -50%) rotate(263deg);
+        }
+
+        .poda:hover>.border::before {
+            transform: translate(-50%, -50%) rotate(250deg);
+        }
+
+        .poda:hover>.darkBorderBg::before {
+            transform: translate(-50%, -50%) rotate(-98deg);
+        }
+
+        .poda:hover>.glow::before {
+            transform: translate(-50%, -50%) rotate(-120deg);
+        }
+
+        .poda:hover>.white::before {
+            transform: translate(-50%, -50%) rotate(-97deg);
+        }
+
+        .poda:hover>.border::before {
+            transform: translate(-50%, -50%) rotate(-110deg);
+        }
+
+        .poda:focus-within>.darkBorderBg::before {
+            transform: translate(-50%, -50%) rotate(442deg);
+            transition: all 4s;
+        }
+
+        .poda:focus-within>.glow::before {
+            transform: translate(-50%, -50%) rotate(420deg);
+            transition: all 4s;
+        }
+
+        .poda:focus-within>.white::before {
+            transform: translate(-50%, -50%) rotate(443deg);
+            transition: all 4s;
+        }
+
+        .poda:focus-within>.border::before {
+            transform: translate(-50%, -50%) rotate(430deg);
+            transition: all 4s;
+        }
+
+        .glow {
+            overflow: hidden;
+            filter: blur(30px);
+            opacity: 0.4;
+            max-height: 130px;
+            max-width: 354px;
+        }
+
+        .glow::before {
+            content: "";
+            z-index: -2;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(60deg);
+            position: absolute;
+            width: 999px;
+            height: 999px;
+            background-repeat: no-repeat;
+            background-image: conic-gradient(#000, #402fb5 5%, #000 38%, #000 50%, #cf30aa 60%, #000 87%);
+            transition: all 2s;
+        }
+
+        @keyframes rotate {
+            100% {
+                transform: translate(-50%, -50%) rotate(450deg);
+            }
+        }
+
+        /* --------------------------------------------------------
+   CHIPS & GRID
+-------------------------------------------------------- */
+        .chip-list {
+            display: flex;
+            gap: 0.45rem;
+            flex-wrap: wrap;
+        }
+
+        .chip {
+            padding: 0.35rem 0.6rem;
+            border-radius: 999px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            cursor: pointer;
+            transition: box-shadow 150ms ease, border-color 150ms ease, background-color 150ms ease;
+            color: #e6eef6;
+            font-size: .9rem;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .chip:focus {
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.06);
+        }
+
+        /* Selected chips use an outline-style highlight instead of a pressed-down effect */
+        .chip.active {
+            background: rgba(255, 255, 255, 0.02);
+            border-color: rgba(59, 130, 246, 0.95);
+            /* blue-ish accent */
+            box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.10);
+            transform: none;
+        }
+
+        /* Prevent visual "press down" on click - keep selection via .active only */
+        .chip:active {
+            transform: none;
+        }
+
+        .movies-grid {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        @media(max-width:1024px) {
+            .movies-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media(max-width:768px) {
+            .movies-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media(max-width:640px) {
+            .movies-grid {
+                grid-template-columns: repeat(1, 1fr);
+            }
+        }
+
+        .section-title h3 {
+            font-size: 1.2rem;
+            font-weight: 800;
+        }
+
+        /* small responsive tweak for filter fields in right area */
+        .filter-right .filter-field {
+            display: inline-block;
+            margin-left: 0.4rem;
+            background: transparent;
+            border: none;
+            color: #e6eef6;
+            padding: 6px 10px;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        /* filter button styles (replaces native selects) */
+        .filter-btn {
+            background: transparent;
+            color: #e6eef6;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 6px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-right: 0.25rem;
+            transition: box-shadow 150ms ease, border-color 150ms ease, background-color 150ms ease;
+        }
+
+        .filter-btn.active {
+            background: rgba(255, 255, 255, 0.02);
+            border-color: rgba(59, 130, 246, 0.95);
+            box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.08);
+        }
+
+        .btn-group {
+
+            .dropdown-menu[hidden] {
+                display: none;
+            }
+
+            /* utility */
+            .opacity-50 {
+                opacity: 0.5;
+            }
+
+            /* make sure images inside cards don't show beyond radius on some browsers */
+            .movie-card img {
+                display: block;
+                border-radius: 12px 12px 0 0;
+            }
+    </style>
+    <!-- ensure main content sits below fixed navbar on wider screens -->
+    <style>
+        @media (min-width:768px) {
+            main.container {
+                padding-top: calc(2rem + 72px) !important;
+            }
+
+            .poda:hover>.white::before {
+                transform: translate(-50%, -50%) rotate(263deg);
+            }
+
+            .poda:hover>.border::before {
+                transform: translate(-50%, -50%) rotate(250deg);
+            }
+
+            .poda:hover>.darkBorderBg::before {
+                transform: translate(-50%, -50%) rotate(-98deg);
+            }
+
+            .poda:hover>.glow::before {
+                transform: translate(-50%, -50%) rotate(-120deg);
+            }
+
+            .poda:hover>.white::before {
+                transform: translate(-50%, -50%) rotate(-97deg);
+            }
+
+            .poda:hover>.border::before {
+                transform: translate(-50%, -50%) rotate(-110deg);
+            }
+
+            .poda:focus-within>.darkBorderBg::before {
+                transform: translate(-50%, -50%) rotate(442deg);
+                transition: all 4s;
+            }
+
+            .poda:focus-within>.glow::before {
+                transform: translate(-50%, -50%) rotate(420deg);
+                transition: all 4s;
+            }
+
+            .poda:focus-within>.white::before {
+                transform: translate(-50%, -50%) rotate(443deg);
+                transition: all 4s;
+            }
+
+            .poda:focus-within>.border::before {
+                transform: translate(-50%, -50%) rotate(430deg);
+                transition: all 4s;
+            }
+
+            .glow {
+                overflow: hidden;
+                filter: blur(30px);
+                opacity: 0.4;
+                max-height: 130px;
+                max-width: 354px;
+            }
+
+            .glow::before {
+                content: "";
+                z-index: -2;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(60deg);
+                position: absolute;
+                width: 999px;
+                height: 999px;
+                background-repeat: no-repeat;
+                background-image: conic-gradient(#000, #402fb5 5%, #000 38%, #000 50%, #cf30aa 60%, #000 87%);
+                transition: all 2s;
+            }
+
+            @keyframes rotate {
+                100% {
+                    transform: translate(-50%, -50%) rotate(450deg);
+                }
+            }
+
+            /* --------------------------------------------------------
+   CHIPS & GRID
+-------------------------------------------------------- */
+            .chip-list {
+                display: flex;
+                gap: 0.45rem;
+                flex-wrap: wrap;
+            }
+
+            .chip {
+                padding: 0.35rem 0.6rem;
+                border-radius: 999px;
+                background: transparent;
+                border: 1px solid rgba(255, 255, 255, 0.06);
+                cursor: pointer;
+                transition: box-shadow 150ms ease, border-color 150ms ease, background-color 150ms ease;
+                color: #e6eef6;
+                font-size: .9rem;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            .chip:focus {
+                outline: none;
+                box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.06);
+            }
+
+            /* Selected chips use an outline-style highlight instead of a pressed-down effect */
+            .chip.active {
+                background: rgba(255, 255, 255, 0.02);
+                border-color: rgba(59, 130, 246, 0.95);
+                /* blue-ish accent */
+                box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.10);
+                transform: none;
+            }
+
+            /* Prevent visual "press down" on click - keep selection via .active only */
+            .chip:active {
+                transform: none;
+            }
+
+            .movies-grid {
+                display: grid;
+                gap: 1rem;
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            @media(max-width:1024px) {
+                .movies-grid {
+                    grid-template-columns: repeat(3, 1fr);
+                }
+            }
+
+            @media(max-width:768px) {
+                .movies-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+
+            @media(max-width:640px) {
+                .movies-grid {
+                    grid-template-columns: repeat(1, 1fr);
+                }
+            }
+
+            .section-title h3 {
+                font-size: 1.2rem;
+                font-weight: 800;
+            }
+
+            /* small responsive tweak for filter fields in right area */
+            .filter-right .filter-field {
+                display: inline-block;
+                margin-left: 0.4rem;
+                background: transparent;
+                border: none;
+                color: #e6eef6;
+                padding: 6px 10px;
+                border-radius: 8px;
+                box-sizing: border-box;
+            }
+
+            /* filter button styles (replaces native selects) */
+            .filter-btn {
+                background: transparent;
+                color: #e6eef6;
+                border: 1px solid rgba(255, 255, 255, 0.06);
+                padding: 6px 10px;
+                border-radius: 8px;
+                cursor: pointer;
+                margin-right: 0.25rem;
+                transition: box-shadow 150ms ease, border-color 150ms ease, background-color 150ms ease;
+            }
+
+            .filter-btn.active {
+                background: rgba(255, 255, 255, 0.02);
+                border-color: rgba(59, 130, 246, 0.95);
+                box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.08);
+            }
+
+            .btn-group {
+
+                .dropdown-menu[hidden] {
+                    display: none;
+                }
+
+                /* utility */
+                .opacity-50 {
+                    opacity: 0.5;
+                }
+
+                /* make sure images inside cards don't show beyond radius on some browsers */
+                .movie-card img {
+                    display: block;
+                    border-radius: 12px 12px 0 0;
+                }
+    </style>
+    <!-- ensure main content sits below fixed navbar on wider screens -->
+    <style>
+        @media (min-width:768px) {
+            main.container {
+                padding-top: calc(2rem + 72px) !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+
+    <!-- Load centralized data -->
+    <script src="data.js"></script>
+
+    <!-- ===============================================
+         JAVASCRIPT (searchInput wired, UI chips + render)
+    =============================================== -->
+    <script>
+        /* MOVIE DATA FROM data.js */
+        const movies = MOVIES_DATA;
+
+        const unique = a => [...new Set(a)];
+
+        const allGenres = unique(movies.map(m => m.genre)).sort();
+        const allLangs = unique(movies.map(m => m.language)).sort();
+        const allYears = unique(movies.map(m => m.year)).sort((a, b) => b - a);
+
+        const genreChipsEl = document.getElementById("genreChips");
+        const languageChipsEl = document.getElementById("languageChips");
+        const sectionsContainer = document.getElementById("sectionsContainer");
+        const searchInput = document.getElementById("searchInput");
+        // yearDropdown will be populated from allYears
+        const yearDropdown = document.querySelector('[data-name="year"]');
+        // dropdown elements
+        const formatDropdown = document.querySelector('[data-name="format"]');
+        const ratingDropdown = document.querySelector('[data-name="rating"]');
+        const durationDropdown = document.querySelector('[data-name="duration"]');
+        const sortDropdown = document.querySelector('[data-name="sort"]');
+        const yearDropdownEl = document.querySelector('[data-name="year"]');
+        const activeFilters = document.getElementById("activeFilters");
+
+        let state = { genres: new Set(), languages: new Set(), format: "", minRating: null, maxDuration: null, year: "", q: "", sort: "popular" };
+
+        function chip(text, key, container) {
+            const el = document.createElement("button");
+            el.className = "chip";
+            el.textContent = text;
+            el.addEventListener("click", () => {
+                const set = (key === "genre" ? state.genres : state.languages);
+                if (set.has(text)) { set.delete(text); el.classList.remove("active"); }
+                else { set.add(text); el.classList.add("active"); }
+                render();
+            });
+            container.appendChild(el);
+        }
+
+        allGenres.forEach(g => chip(g, "genre", genreChipsEl));
+        allLangs.forEach(l => chip(l, "language", languageChipsEl));
+
+        // populate year dropdown menu
+        if (yearDropdown) {
+            const menu = yearDropdown.querySelector('.dropdown-menu');
+            if (menu) {
+                // add a clear/default option
+                const def = document.createElement('button');
+                def.className = 'dropdown-item';
+                def.setAttribute('data-value', '');
+                def.textContent = 'Year';
+                menu.appendChild(def);
+
+                allYears.forEach(y => {
+                    const btn = document.createElement('button');
+                    btn.className = 'dropdown-item';
+                    toggle.addEventListener('click', (e) => {
+                        const expanded = toggle.getAttribute('aria-expanded') === 'true';
+                        closeAllDropdowns();
+                        toggle.setAttribute('aria-expanded', String(!expanded));
+                        menu.hidden = expanded; // if was expanded -> hide, else show
+                        if (!expanded) { menu.hidden = false; }
+                    });
+
+                    // select item
+                    menu.addEventListener('click', (e) => {
+                        const item = e.target.closest('.dropdown-item');
+                        if (!item) return;
+                        const val = item.getAttribute('data-value');
+                        // apply to state depending on kind
+                        if (kind === 'format') {
+                            state.format = val || '';
+                            toggle.textContent = (item.textContent || 'Format') + ' ▾';
+                        } else if (kind === 'rating') {
+                            state.minRating = val ? +val : null;
+                            toggle.textContent = (item.textContent || 'Rating') + ' ▾';
+                        } else if (kind === 'duration') {
+                            state.maxDuration = val ? +val : null;
+                            toggle.textContent = (item.textContent || 'Duration') + ' ▾';
+                        } else if (kind === 'sort') {
+                            state.sort = val || 'popular';
+                            toggle.textContent = (item.textContent || 'Sort') + ' ▾';
+                        } else if (kind === 'year') {
+                            state.year = val || '';
+                            toggle.textContent = (item.textContent || 'Year') + ' ▾';
+                        }
+                        // close menu and render
+                        menu.hidden = true;
+                        toggle.setAttribute('aria-expanded', 'false');
+                        render();
+                    });
+                }
+
+        // close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+                    if (e.target.closest('.dropdown')) return;
+                    closeAllDropdowns();
+                });
+
+                // Initial setup
+                setupDropdown(formatDropdown, 'format');
+                setupDropdown(ratingDropdown, 'rating');
+                setupDropdown(durationDropdown, 'duration');
+                setupDropdown(sortDropdown, 'sort');
+                setupDropdown(yearDropdownEl, 'year');
+
+                // Initial render
+                render();
+    </script>
+
+    <script src="components/navbar.js"></script>
+    <script src="components/footer.js"></script>
+
+    <!-- Book button ripple handler -->
+    <script>
+                // delegate clicks on .book-btn to create a ripple element
+                document.addEventListener('click', function (e) {
+                    const btn = e.target.closest('.book-btn');
+                    if (!btn) return;
+
+                    const rect = btn.getBoundingClientRect();
+                    const ripple = document.createElement('span');
+                    ripple.className = 'ripple';
+                    const size = Math.max(rect.width, rect.height) * 1.2;
+                    ripple.style.width = ripple.style.height = size + 'px';
+                    ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+                    ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+                    ripple.style.animation = 'ripple 600ms ease-out';
+
+                    btn.appendChild(ripple);
+                    ripple.addEventListener('animationend', () => ripple.remove());
+                });
+    </script>
+
+    <!-- feather icons (initial pass) -->
+    <script>
+                if (window.feather) feather.replace();
+    </script>
+
+</body>
+
+</html>

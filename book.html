@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Book Tickets | ReelRush Cinematics</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0a0a0f, #1a0b1f);
+            color: #e6eef6;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+        }
+
+        .trailer-container {
+            aspect-ratio: 16/9;
+            background: #000;
+            border-radius: 0.75rem;
+            overflow: hidden;
+        }
+
+        .cast-list {
+            display: flex;
+            gap: 1.5rem;
+            overflow-x: auto;
+            padding: 1rem 0;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(160, 153, 216, 0.5) transparent;
+        }
+
+        .cast-list::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .cast-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .cast-list::-webkit-scrollbar-thumb {
+            background: rgba(160, 153, 216, 0.5);
+            border-radius: 3px;
+        }
+
+        .cast-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 80px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .cast-item:hover {
+            transform: translateY(-4px);
+        }
+
+        .cast-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .cast-item:hover .cast-avatar {
+            border-color: rgba(207, 48, 170, 0.6);
+            box-shadow: 0 6px 20px rgba(207, 48, 170, 0.4);
+        }
+
+        .cast-name {
+            font-size: 0.75rem;
+            text-align: center;
+            color: #e0e0e0;
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            background: linear-gradient(135deg, #a099d8, #cf30aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .theatre-card {
+            background: rgba(20, 20, 30, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .apply-btn {
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #cf30aa, #a099d8);
+            border: none;
+            border-radius: 0.5rem;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .apply-btn:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body>
+    <custom-navbar></custom-navbar>
+    <main class="container mx-auto px-4 py-8">
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Left side: Trailer (≈60%) -->
+            <div class="lg:w-3/5">
+                <div class="trailer-container" id="trailer">
+                    <custom-video-player id="videoPlayer" src="" poster=""></custom-video-player>
+                </div>
+                <h2 class="section-title">Plot Summary</h2>
+                <p id="summary" class="text-sm text-gray-300">Loading summary...</p>
+            </div>
+            <!-- Right side: Cast -->
+            <div class="lg:w-2/5">
+                <h2 class="section-title">Cast</h2>
+                <div class="cast-list" id="cast-list">
+                    <!-- Cast items will be injected via JS -->
+                </div>
+            </div>
+        </div>
+        <h2 class="section-title">Available Theatres</h2>
+        <div id="theatres-container">
+            <!-- Theatre cards will be injected via JS -->
+        </div>
+    </main>
+    <custom-footer></custom-footer>
+    <script src="components/navbar.js"></script>
+    <script src="components/footer.js"></script>
+    <script src="components/animated-button.js"></script>
+    <script src="components/video-player.js"></script>
+    <script src="data.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        if (window.feather) feather.replace();
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const movieTitle = urlParams.get('movie');
+
+            if (!movieTitle) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            let movie = null;
+
+            try {
+                // Fetch movie details from API
+                const searchRes = await searchMovies(movieTitle);
+                if (searchRes.success && searchRes.results.length > 0) {
+                    movie = searchRes.results[0];
+                } else {
+                    // Fallback to data.js if API fails or no result (though we prefer API)
+                    if (typeof getMovieByTitle === 'function') {
+                        movie = getMovieByTitle(movieTitle);
+                    }
+                }
+            } catch (err) {
+                console.error("Error fetching movie details:", err);
+                // Fallback
+                if (typeof getMovieByTitle === 'function') {
+                    movie = getMovieByTitle(movieTitle);
+                }
+            }
+
+            if (!movie) {
+                document.querySelector('main').innerHTML = '<p class="text-center text-red-500 mt-10">Movie not found.</p>';
+                return;
+            }
+
+            document.title = `Book ${movie.title} | ReelRush Cinematics`;
+
+            // Render Summary
+            document.getElementById('summary').textContent = movie.description || 'No description available.';
+
+            // Render Star Rating (New Feature)
+            const summarySection = document.getElementById('summary').previousElementSibling; // The "Plot Summary" h2
+            const ratingDiv = document.createElement('div');
+            ratingDiv.className = 'flex items-center gap-2 mb-4';
+            ratingDiv.innerHTML = `
+                <div class="flex items-center text-yellow-400">
+                    <i data-feather="star" class="fill-current w-5 h-5"></i>
+                    <span class="ml-2 text-lg font-bold text-white">${movie.rating || 'N/A'}/10</span>
+                </div>
+                <span class="px-2 py-1 bg-gray-700 rounded text-xs text-gray-300">${movie.age || 'UA'}</span>
+                <span class="text-gray-400 text-sm">• ${movie.duration} min • ${movie.genre}</span>
+            `;
+            // Insert rating before the summary title or summary text? 
+            // User said "add it too". Let's put it above the Plot Summary title for prominence.
+            summarySection.parentNode.insertBefore(ratingDiv, summarySection);
+
+            // Set up video player
+            const videoPlayer = document.getElementById('videoPlayer');
+            if (movie.trailer) {
+                videoPlayer.setAttribute('src', movie.trailer);
+                videoPlayer.setAttribute('poster', movie.img || movie.poster);
+            } else {
+                // Fallback if no trailer
+                document.getElementById('trailer').innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;height:100%;background:#1a1a2e;color:#fff;font-size:1.2rem;">
+                        <p>Trailer not available</p>
+                    </div>
+                `;
+            }
+
+            // Cast
+            const castContainer = document.getElementById('cast-list');
+            castContainer.innerHTML = ''; // Clear existing
+            if (Array.isArray(movie.cast) && movie.cast.length > 0) {
+                movie.cast.forEach((name) => {
+                    const div = document.createElement('div');
+                    div.className = 'cast-item';
+
+                    // Create avatar with initials
+                    const avatar = document.createElement('div');
+                    avatar.className = 'cast-avatar';
+
+                    // Get initials (first letter of each word, max 2)
+                    const initials = name.split(' ')
+                        .map(word => word[0])
+                        .slice(0, 2)
+                        .join('')
+                        .toUpperCase();
+
+                    // Create unique gradient based on name
+                    const hue1 = (name.charCodeAt(0) * 137.5) % 360;
+                    const hue2 = (hue1 + 60) % 360;
+                    avatar.style.background = `linear-gradient(135deg, hsl(${hue1}, 70%, 55%), hsl(${hue2}, 70%, 45%))`;
+                    avatar.textContent = initials;
+
+                    // Create name label
+                    const nameSpan = document.createElement('span');
+                    nameSpan.className = 'cast-name';
+                    nameSpan.textContent = name;
+                    nameSpan.title = name; // Tooltip for full name
+
+                    div.appendChild(avatar);
+                    div.appendChild(nameSpan);
+                    castContainer.appendChild(div);
+                });
+            } else {
+                castContainer.textContent = 'Cast information not available.';
+            }
+
+            // Theatres – using API
+            const theatresDiv = document.getElementById('theatres-container');
+            try {
+                showLoading(theatresDiv);
+
+                let theatreCount = 'Multiple';
+                let isApiSuccess = false;
+
+                try {
+                    const showtimesRes = await fetch(`${API_BASE_URL}/showtimes/movie/${movie._id}`);
+                    const showtimesData = await showtimesRes.json();
+
+                    if (showtimesData.success) {
+                        const uniqueTheatres = new Set(showtimesData.data.map(s => s.theatre._id));
+                        theatreCount = uniqueTheatres.size > 0 ? uniqueTheatres.size : 'Multiple';
+                        isApiSuccess = true;
+                    }
+                } catch (innerError) {
+                    console.warn('Failed to fetch showtimes count, falling back to default UI', innerError);
+                }
+
+                theatresDiv.innerHTML = '';
+
+                const container = document.createElement('div');
+                container.className = 'text-center py-8';
+
+                const btn = document.createElement('animated-button');
+                btn.setAttribute('text', 'Book Tickets Now');
+                btn.className = 'text-xl px-8 py-4';
+                btn.onclick = () => {
+                    const params = new URLSearchParams();
+                    params.set('movie', movie.title);
+                    window.location.href = `showtimes.html?${params.toString()}`;
+                };
+
+                const subtext = document.createElement('p');
+                subtext.className = 'mt-4 text-gray-400';
+                subtext.textContent = `${theatreCount} Theatres Available`;
+
+                container.appendChild(btn);
+                container.appendChild(subtext);
+                theatresDiv.appendChild(container);
+
+            } catch (error) {
+                console.error('Error in theatre rendering logic:', error);
+                // Last resort fallback
+                theatresDiv.innerHTML = `
+                    <div class="text-center py-8">
+                        <a href="showtimes.html?movie=${encodeURIComponent(movie.title)}" 
+                           class="inline-block px-8 py-4 bg-purple-600 text-white rounded-lg font-bold text-xl hover:bg-purple-700 transition">
+                            Book Tickets Now
+                        </a>
+                        <p class="mt-4 text-gray-400">Multiple Theatres Available</p>
+                    </div>
+                `;
+            }
+
+            if (window.feather) feather.replace();
+        });
+    </script>
+</body>
+
+</html>

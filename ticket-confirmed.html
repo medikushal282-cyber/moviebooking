@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Booking Confirmed – ReelRush Cinematics</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0a0a0f, #1a0b1f);
+            color: #e6eef6;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ticket-container {
+            background: #fff;
+            color: #000;
+            border-radius: 1rem;
+            max-width: 400px;
+            margin: 2rem auto;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .ticket-header {
+            background: linear-gradient(135deg, #cf30aa, #a099d8);
+            padding: 1.5rem;
+            text-align: center;
+            color: #fff;
+        }
+
+        .ticket-body {
+            padding: 2rem;
+            border-bottom: 2px dashed #ddd;
+            position: relative;
+        }
+
+        .ticket-body::before,
+        .ticket-body::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            width: 20px;
+            height: 20px;
+            background: #1a0b1f;
+            border-radius: 50%;
+        }
+
+        .ticket-body::before {
+            left: -10px;
+        }
+
+        .ticket-body::after {
+            right: -10px;
+        }
+
+        .ticket-footer {
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .qr-placeholder {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto;
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(720deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <custom-navbar></custom-navbar>
+
+    <main class="container mx-auto px-4 flex-grow flex items-center justify-center">
+        <div class="text-center w-full">
+            <h1
+                class="text-4xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
+                Congratulations!</h1>
+            <p class="text-gray-400 mb-8">Your booking has been confirmed.</p>
+
+            <div class="ticket-container" id="ticket">
+                <div class="ticket-header">
+                    <h2 class="text-2xl font-bold">ReelRush Cinematics</h2>
+                    <p class="text-sm opacity-90">Admit One</p>
+                </div>
+                <div class="ticket-body text-left">
+                    <h3 class="text-xl font-bold mb-1" id="movie-title">Loading...</h3>
+                    <p class="text-gray-500 text-sm mb-4" id="theatre-name">Loading...</p>
+
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase">Date</p>
+                            <p class="font-semibold" id="show-date">--</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase">Time</p>
+                            <p class="font-semibold" id="show-time">--</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase">Screen</p>
+                            <p class="font-semibold" id="screen-name">--</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase">Seats</p>
+                            <p class="font-semibold text-purple-600" id="seat-numbers">--</p>
+                        </div>
+                    </div>
+
+                    <div class="border-t pt-4 mt-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-500">Total Paid</span>
+                            <span class="text-xl font-bold" id="total-amount">₹0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="ticket-footer">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=BookingConfirmed"
+                        class="qr-placeholder" alt="Ticket QR">
+                    <p class="text-xs text-gray-400 mt-2">Scan at entry</p>
+                    <p class="text-xs text-gray-300 mt-1" id="booking-id">ID: --</p>
+                </div>
+            </div>
+
+            <div class="mt-8 space-x-4">
+                <button onclick="downloadTicket()"
+                    class="px-6 py-3 bg-purple-600 rounded-lg hover:bg-purple-700 transition font-semibold">
+                    <i data-feather="download" class="inline w-4 h-4 mr-2"></i> Download Ticket
+                </button>
+                <a href="index.html" class="px-6 py-3 border border-gray-600 rounded-lg hover:bg-gray-800 transition">
+                    Back to Home
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <custom-footer></custom-footer>
+    <script src="js/api.js"></script>
+    <script src="components/navbar.js"></script>
+    <script src="components/footer.js"></script>
+
+    <script>
+        if (window.feather) feather.replace();
+
+        // Confetti effect
+        function createConfetti() {
+            const colors = ['#cf30aa', '#a099d8', '#10b981', '#f59e0b', '#3b82f6'];
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                document.body.appendChild(confetti);
+
+                setTimeout(() => confetti.remove(), 5000);
+            }
+        }
+        createConfetti();
+
+        // Load booking data
+        const bookingData = JSON.parse(sessionStorage.getItem('confirmedBooking'));
+        if (!bookingData) {
+            // alert('No booking found.');
+            // window.location.href = 'index.html';
+            // For dev testing, mock data if missing
+        } else {
+            document.getElementById('movie-title').textContent = bookingData.movieTitle;
+            document.getElementById('theatre-name').textContent = bookingData.theatreName;
+            document.getElementById('seat-numbers').textContent = bookingData.seats.map(s => s.row + s.number).join(', ');
+            document.getElementById('total-amount').textContent = '₹' + bookingData.totalAmount;
+
+            // We might need to fetch showtime details again for date/time if not in session
+            // Or assume it was passed. Let's fetch if we have ID.
+            if (bookingData.showtimeId) {
+                fetch(`${API_BASE_URL}/showtimes/${bookingData.showtimeId}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            const date = new Date(data.data.startTime);
+                            document.getElementById('show-date').textContent = date.toLocaleDateString();
+                            document.getElementById('show-time').textContent = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            document.getElementById('screen-name').textContent = data.data.screen || '1';
+                        }
+                    });
+            }
+
+            // Generate random booking ID for display
+            document.getElementById('booking-id').textContent = 'ID: ' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        }
+
+        function downloadTicket() {
+            const element = document.getElementById('ticket');
+            const opt = {
+                margin: 1,
+                filename: 'reelrush-ticket.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Movies - BookYourShow</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+
+    <style>
+        body {
+            background: transparent;
+            color: #e6eef6;
+            min-height: 100vh;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+        }
+
+        /* Animated Gradient Background */
+        .gradient-bg-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(40deg, rgb(10, 25, 47), rgb(0, 10, 30));
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .gradients-bg {
+            width: 100%;
+            height: 100%;
+            filter: url(#blurMeMovies) blur(40px);
+            opacity: 0.3;
+        }
+
+        .gradient-blob {
+            position: absolute;
+            width: 80%;
+            height: 80%;
+            top: calc(50% - 40%);
+            left: calc(50% - 40%);
+            mix-blend-mode: hard-light;
+            opacity: 1;
+        }
+
+        .gradient-blob-1 {
+            background: radial-gradient(circle at center, rgba(18, 113, 255, 1) 0%, rgba(18, 113, 255, 0) 50%) no-repeat;
+            transform-origin: center center;
+            animation: moveFirst 20s ease infinite;
+        }
+
+        .gradient-blob-2 {
+            background: radial-gradient(circle at center, rgba(221, 74, 255, 0.8) 0%, rgba(221, 74, 255, 0) 50%) no-repeat;
+            transform-origin: calc(50% - 400px);
+            animation: moveSecond 20s ease infinite;
+        }
+
+        .gradient-blob-3 {
+            background: radial-gradient(circle at center, rgba(100, 220, 255, 0.8) 0%, rgba(100, 220, 255, 0) 50%) no-repeat;
+            transform-origin: calc(50% + 400px);
+            animation: moveThird 20s ease infinite;
+        }
+
+        .gradient-blob-4 {
+            background: radial-gradient(circle at center, rgba(200, 50, 50, 0.8) 0%, rgba(200, 50, 50, 0) 50%) no-repeat;
+            transform-origin: calc(50% - 200px);
+            animation: moveFourth 20s ease infinite;
+            opacity: 0.7;
+        }
+
+        .gradient-blob-5 {
+            background: radial-gradient(circle at center, rgba(180, 180, 50, 0.8) 0%, rgba(180, 180, 50, 0) 50%) no-repeat;
+            transform-origin: calc(50% - 800px) calc(50% + 800px);
+            animation: moveFifth 20s ease infinite;
+        }
+
+        .interactive-blob {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(circle at center, rgba(140, 100, 255, 0.8) 0%, rgba(140, 100, 255, 0) 50%) no-repeat;
+            mix-blend-mode: hard-light;
+            opacity: 0.7;
+            pointer-events: none;
+            transition: transform 0.1s ease-out;
+        }
+
+        @keyframes moveFirst {
+
+            0%,
+            100% {
+                transform: translate(0, 0);
+            }
+
+            50% {
+                transform: translate(100px, 100px);
+            }
+        }
+
+        @keyframes moveSecond {
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            33% {
+                transform: translate(-100px, 200px) rotate(120deg);
+            }
+
+            66% {
+                transform: translate(100px, -100px) rotate(240deg);
+            }
+        }
+
+        @keyframes moveThird {
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            50% {
+                transform: translate(-200px, -100px) rotate(180deg);
+            }
+        }
+
+        @keyframes moveFourth {
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            33% {
+                transform: translate(200px, -50px) rotate(-120deg);
+            }
+
+            66% {
+                transform: translate(-150px, 150px) rotate(-240deg);
+            }
+        }
+
+        @keyframes moveFifth {
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            25% {
+                transform: translate(150px, 100px) rotate(90deg);
+            }
+
+            50% {
+                transform: translate(-100px, 200px) rotate(180deg);
+            }
+
+            75% {
+                transform: translate(100px, -150px) rotate(270deg);
+            }
+        }
+
+        /* Movie Card Styles */
+        .movie-card-container {
+            perspective: 1000px;
+        }
+
+        .movie-card {
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.65) 0%, rgba(0, 0, 0, 0.45) 40%, rgba(0, 0, 0, 0.25) 100%);
+            transform-style: preserve-3d;
+            transition: all 0.45s cubic-bezier(0.23, 1, 0.32, 1);
+            opacity: 0;
+            transform: translateY(20px);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .movie-card.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .movie-card:hover {
+            transform: rotateY(12deg) rotateX(8deg) scale(1.07);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .movie-card:before,
+        .movie-card:after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.25));
+            transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .movie-card:hover:before {
+            transform: translateX(-100%);
+        }
+
+        .movie-card:hover:after {
+            transform: translateX(100%);
+        }
+
+        .movie-thumb-wrapper {
+            width: 100%;
+            aspect-ratio: 2 / 3;
+            overflow: hidden;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .movie-thumb {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .movie-content {
+            position: relative;
+            z-index: 5;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(12px);
+            padding: 16px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Animated Search Bar */
+        .glow,
+        .white,
+        .border,
+        .darkBorderBg {
+            max-height: 70px;
+            max-width: 314px;
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            overflow: hidden;
+            z-index: -1;
+            border-radius: 12px;
+            filter: blur(3px);
+        }
+
+        .input {
+            background-color: #010201;
+            border: none;
+            width: 301px;
+            height: 56px;
+            border-radius: 10px;
+            color: white;
+            padding-inline: 59px;
+            font-size: 18px;
+        }
+
+        .input::placeholder {
+            color: #c0b9c0;
+        }
+
+        .input:focus {
+            outline: none;
+        }
+
+        #main {
+            position: relative;
+        }
+
+        #search-icon {
+            position: absolute;
+            left: 20px;
+            top: 15px;
+            pointer-events: none;
+        }
+
+        #main:focus-within>#input-mask {
+            display: none;
+        }
+
+        #input-mask {
+            pointer-events: none;
+            width: 100px;
+            height: 20px;
+            position: absolute;
+            background: linear-gradient(90deg, transparent, black);
+            top: 18px;
+            left: 70px;
+        }
+
+        #pink-mask {
+            pointer-events: none;
+            width: 30px;
+            height: 20px;
+            position: absolute;
+            background: #cf30aa;
+            top: 10px;
+            left: 5px;
+            filter: blur(20px);
+            opacity: 0.8;
+            transition: all 2s;
+        }
+
+        #main:hover>#pink-mask {
+            opacity: 0;
+        }
+
+        .white {
+            max-height: 63px;
+            max-width: 307px;
+            border-radius: 10px;
+            filter: blur(2px);
+        }
+
+        .white::before {
+            content: "";
+            z-index: -2;
+            text-align: center;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(83deg);
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background-repeat: no-repeat;
+            background-position: 0 0;
+            filter: brightness(2.0);
+            background-image: conic-gradient(rgba(0, 0, 0, 0) 0%, #a099d8, rgba(0, 0, 0, 0) 8%, rgba(0, 0, 0, 0) 50%, #dfa2da, rgba(0, 0, 0, 0) 58%);
+            transition: all 2s;
+        }
+
+        .border {
+            max-height: 59px;
+            max-width: 303px;
+            border-radius: 11px;
+            filter: blur(0.5px);
+        }
+
+        .border::before {
+            content: "";
+            z-index: -2;
+            text-align: center;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(70deg);
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            filter: brightness(1.8);
+            background-repeat: no-repeat;
+            background-position: 0 0;
+            background-image: conic-gradient(#1c191c, #402fb5 5%, #1c191c 14%, #1c191c 50%, #cf30aa 60%, #1c191c 64%);
+            transition: all 2s;
+        }
+
+        .darkBorderBg {
+            max-height: 65px;
+            max-width: 312px;
+        }
+
+        .darkBorderBg::before {
+            content: "";
+            z-index: -2;
+            text-align: center;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(82deg);
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background-repeat: no-repeat;
+            background-position: 0 0;
+            background-image: conic-gradient(rgba(0, 0, 0, 0), #18116a, rgba(0, 0, 0, 0) 10%, rgba(0, 0, 0, 0) 50%, #6e1b60, rgba(0, 0, 0, 0) 60%);
+            transition: all 2s;
+        }
+
+        #poda:hover>.darkBorderBg::before {
+            transform: translate(-50%, -50%) rotate(-98deg);
+        }
+
+        #poda:hover>.glow::before {
+            transform: translate(-50%, -50%) rotate(-120deg);
+        }
+
+        #poda:hover>.white::before {
+            transform: translate(-50%, -50%) rotate(-97deg);
+        }
+
+        #poda:hover>.border::before {
+            transform: translate(-50%, -50%) rotate(-110deg);
+        }
+
+        #poda:focus-within>.darkBorderBg::before {
+            transform: translate(-50%, -50%) rotate(442deg);
+            transition: all 4s;
+        }
+
+        #poda:focus-within>.glow::before {
+            transform: translate(-50%, -50%) rotate(420deg);
+            transition: all 4s;
+        }
+
+        #poda:focus-within>.white::before {
+            transform: translate(-50%, -50%) rotate(443deg);
+            transition: all 4s;
+        }
+
+        #poda:focus-within>.border::before {
+            transform: translate(-50%, -50%) rotate(430deg);
+            transition: all 4s;
+        }
+
+        .glow {
+            overflow: hidden;
+            filter: blur(30px);
+            opacity: 0.4;
+            max-height: 130px;
+            max-width: 354px;
+        }
+
+        .glow:before {
+            content: "";
+            z-index: -2;
+            text-align: center;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(60deg);
+            position: absolute;
+            width: 999px;
+            height: 999px;
+            background-repeat: no-repeat;
+            background-position: 0 0;
+            background-image: conic-gradient(#000, #402fb5 5%, #000 38%, #000 50%, #cf30aa 60%, #000 87%);
+            transition: all 2s;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Animated Gradient Background -->
+    <div class="gradient-bg-container">
+        <svg class="hidden">
+            <defs>
+                <filter id="blurMeMovies">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+                    <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8"
+                        result="goo" />
+                    <feBlend in="SourceGraphic" in2="goo" />
+                </filter>
+            </defs>
+        </svg>
+        <div class="gradients-bg">
+            <div class="gradient-blob gradient-blob-1"></div>
+            <div class="gradient-blob gradient-blob-2"></div>
+            <div class="gradient-blob gradient-blob-3"></div>
+            <div class="gradient-blob gradient-blob-4"></div>
+            <div class="gradient-blob gradient-blob-5"></div>
+            <div class="interactive-blob" id="interactiveBlobMovies"></div>
+        </div>
+    </div>
+
+    <custom-navbar></custom-navbar>
+    <div class="h-20"></div>
+
+    <main class="container mx-auto px-8 md:px-12 py-8">
+        <h1 class="text-3xl font-bold mb-6">All Movies</h1>
+
+        <!-- Animated Search Bar -->
+        <div class="mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+            <div id="poda">
+                <div class="glow"></div>
+                <div class="darkBorderBg"></div>
+                <div class="darkBorderBg"></div>
+                <div class="darkBorderBg"></div>
+                <div class="white"></div>
+                <div class="border"></div>
+                <div id="main">
+                    <input placeholder="Search movies..." type="text" id="searchInput" class="input" />
+                    <div id="input-mask"></div>
+                    <div id="pink-mask"></div>
+                    <div id="search-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" viewBox="0 0 24 24" stroke-width="2"
+                            stroke-linejoin="round" stroke-linecap="round" height="24" fill="none">
+                            <circle stroke="url(#search)" r="8" cy="11" cx="11" />
+                            <line stroke="url(#searchl)" y2="16.65" y1="22" x2="16.65" x1="22" />
+                            <defs>
+                                <linearGradient gradientTransform="rotate(50)" id="search">
+                                    <stop stop-color="#f8e7f8" offset="0%" />
+                                    <stop stop-color="#b6a9b7" offset="50%" />
+                                </linearGradient>
+                                <linearGradient id="searchl">
+                                    <stop stop-color="#b6a9b7" offset="0%" />
+                                    <stop stop-color="#837484" offset="50%" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <div id="movieCountBadge"
+                    style="height: 56px; padding: 0 1.5rem; border-radius: 10px; background: linear-gradient(135deg, rgba(160, 153, 216, 0.1), rgba(207, 48, 170, 0.1)); border: 1px solid rgba(160, 153, 216, 0.3); backdrop-filter: blur(10px); display: flex; align-items: center; gap: 0.5rem;">
+                    <span id="filteredMovieCount"
+                        style="font-size: 1.3rem; font-weight: 700; background: linear-gradient(135deg, #a099d8 0%, #cf30aa 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">0</span>
+                    <span style="font-size: 0.95rem; color: rgba(255, 255, 255, 0.7);">Movies</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Movies Grid -->
+        <div id="moviesGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            <!-- Movies will be inserted here -->
+        </div>
+    </main>
+
+    <custom-footer></custom-footer>
+
+
+    <script src="data.js"></script>
+    <script src="js/api.js"></script>
+    <script src="components/navbar.js"></script>
+    <script src="components/footer.js"></script>
+
+    <script>
+        let movies = [];
+        let filteredMovies = [];
+
+        const moviesGrid = document.getElementById("moviesGrid");
+        const searchInput = document.getElementById("searchInput");
+        const filteredMovieCount = document.getElementById("filteredMovieCount");
+
+        function escapeHtml(s) {
+            const div = document.createElement("div");
+            div.textContent = s;
+            return div.innerHTML;
+        }
+
+        function makeCard(m) {
+            const card = document.createElement("div");
+            card.className = "movie-card-container";
+            const hours = Math.floor(m.duration / 60);
+            const mins = m.duration % 60;
+
+            card.innerHTML = `
+                <div class="movie-card">
+                    <div class="movie-thumb-wrapper">
+                        <img src="${escapeHtml(m.img)}" class="movie-thumb" alt="${escapeHtml(m.title)}" />
+                    </div>
+
+                    ${m.badge ? `
+                    <div class="absolute top-2 right-2 bg-primary-500 text-white text-xs font-bold px-2 py-1 rounded z-10">
+                        ${escapeHtml(m.badge)}
+                    </div>
+                    ` : ''}
+
+                    <div class="movie-content">
+                        <h3 class="font-bold text-lg mb-1">${escapeHtml(m.title)}</h3>
+
+                        <div class="flex items-center text-sm text-gray-300 mb-2">
+                            <span>${escapeHtml(m.age)}</span>
+                            <span class="mx-2">•</span>
+                            <span>${hours}h ${mins}m</span>
+                        </div>
+
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <i data-feather="star" class="w-4 h-4 text-yellow-400"></i>
+                                <span class="ml-1 font-medium">${m.rating}</span>
+                            </div>
+
+                            <a href="book.html?movie=${encodeURIComponent(m.title)}" class="book-btn">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            setTimeout(() => {
+                const movieCard = card.querySelector('.movie-card');
+                if (movieCard) movieCard.classList.add('show');
+            }, 50);
+
+            return card;
+        }
+
+        function render() {
+            const query = searchInput.value.trim().toLowerCase();
+
+            filteredMovies = query
+                ? movies.filter(m => m.title.toLowerCase().includes(query))
+                : movies;
+
+            filteredMovieCount.textContent = filteredMovies.length;
+
+            moviesGrid.innerHTML = "";
+            filteredMovies.forEach((m, index) => {
+                const card = makeCard(m);
+                moviesGrid.appendChild(card);
+            });
+
+            if (window.feather) feather.replace();
+        }
+
+        function debounce(fn, wait = 180) {
+            let t;
+            return function (...args) {
+                clearTimeout(t);
+                t = setTimeout(() => fn.apply(this, args), wait);
+            }
+        }
+
+        searchInput.addEventListener("input", debounce(() => render(), 200));
+
+        async function initPage() {
+            try {
+                showLoading(moviesGrid);
+
+                const response = await fetchMovies();
+                if (response.success && response.data) {
+                    movies = response.data;
+                    render();
+                } else {
+                    throw new Error('API returned unsuccessful response');
+                }
+            } catch (error) {
+                console.error('Error loading movies:', error);
+                console.warn('Falling back to local data...');
+
+                if (typeof MOVIES_DATA !== 'undefined') {
+                    movies = MOVIES_DATA;
+                    render();
+                } else {
+                    showError(moviesGrid, `Error loading movies: ${error.message}`, () => location.reload());
+                }
+            }
+        }
+
+        initPage();
+    </script>
+
+    <script>
+        // Interactive gradient blob that follows mouse
+        const interactiveBlobMovies = document.getElementById('interactiveBlobMovies');
+
+        if (interactiveBlobMovies) {
+            let curX = 0;
+            let curY = 0;
+            let tgX = 0;
+            let tgY = 0;
+
+            document.addEventListener('mousemove', (e) => {
+                tgX = e.clientX;
+                tgY = e.clientY;
+            });
+
+            function animateBlob() {
+                curX += (tgX - curX) / 20;
+                curY += (tgY - curY) / 20;
+                interactiveBlobMovies.style.transform = `translate(${Math.round(curX)}px, ${Math.round(curY)}px)`;
+                requestAnimationFrame(animateBlob);
+            }
+
+            animateBlob();
+        }
+    </script>
+
+    <script>
+        if (window.feather) feather.replace();
+    </script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,844 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Movies - BookYourShow</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+
+    <style>
+        body {
+            background: #0a0a0f;
+            color: #e6eef6;
+            min-height: 100vh;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+        }
+
+        /* Movie Card Styles - EXACT MATCH from index.html */
+        .movie-card-container {
+            perspective: 1000px;
+        }
+
+        .movie-card {
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.65) 0%, rgba(0, 0, 0, 0.45) 40%, rgba(0, 0, 0, 0.25) 100%);
+            transform-style: preserve-3d;
+            transition: all 0.45s cubic-bezier(0.23, 1, 0.32, 1);
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .movie-card.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .movie-card:hover {
+            transform: rotateY(12deg) rotateX(8deg) scale(1.07);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .movie-card:before,
+        .movie-card:after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.25));
+            transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .movie-card:hover:before {
+            transform: translateX(-100%);
+        }
+
+        .movie-card:hover:after {
+            transform: translateX(100%);
+        }
+
+        .glow {
+            max-height: 70px;
+            max-width: 314px;
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            overflow: hidden;
+            z-index: -1;
+            border-radius: 12px;
+            filter: blur(3px);
+        }
+
+        .input {
+            background-color: #010201;
+            border: none;
+            width: 301px;
+            height: 56px;
+            border-radius: 10px;
+            color: white;
+            padding-inline: 59px;
+            font-size: 18px;
+        }
+
+        .input::placeholder {
+            color: #c0b9c0;
+        }
+
+        .input:focus {
+            outline: none;
+        }
+
+        #main:focus-within>#input-mask {
+            display: none;
+        }
+
+        #input-mask {
+            pointer-events: none;
+            width: 100px;
+            height: 20px;
+            position: absolute;
+            background: linear-gradient(90deg, transparent, black);
+            top: 18px;
+            left: 70px;
+        }
+
+        #pink-mask {
+            pointer-events: none;
+            width: 30px;
+            height: 20px;
+            position: absolute;
+            background: #cf30aa;
+            top: 10px;
+            left: 5px;
+            filter: blur(20px);
+            opacity: 0.8;
+            transition: all 2s;
+        }
+
+        #main:hover>#pink-mask {
+            opacity: 0;
+        }
+
+        .white {
+            max-height: 63px;
+            max-width: 307px;
+            border-radius: 10px;
+            filter: blur(2px);
+        }
+
+        .white::before {
+            content: "";
+            z-index: -2;
+            text-align: center;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(83deg);
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background-repeat: no-repeat;
+            background-position: 0 0;
+            filter: brightness(1.4);
+            background-image: conic-gradient(rgba(0, 0, 0, 0) 0%, #a099d8, rgba(0, 0, 0, 0) 8%, rgba(0, 0, 0, 0) 50%, #dfa2da, rgba(0, 0, 0, 0) 58%);
+            transition: all 2s;
+        }
+
+        .border {
+            max-height: 59px;
+            max-width: 303px;
+            border-radius: 11px;
+            filter: blur(0.5px);
+        }
+
+        .border::before {
+            content: "";
+            z-index: -2;
+            text-align: center;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(70deg);
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            filter: brightness(1.3);
+            background-repeat: no-repeat;
+            background-position: 0 0;
+            background-image: conic-gradient(#1c191c, #402fb5 5%, #1c191c 14%, #1c191c 50%, #cf30aa 60%, #1c191c 64%);
+            transition: all 2s;
+        }
+
+        .darkBorderBg {
+            max-height: 65px;
+            max-width: 312px;
+        }
+
+        .darkBorderBg::before {
+            content: "";
+            z-index: -2;
+            text-align: center;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(82deg);
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background-repeat: no-repeat;
+            background-position: 0 0;
+            background-image: conic-gradient(rgba(0, 0, 0, 0), #18116a, rgba(0, 0, 0, 0) 10%, rgba(0, 0, 0, 0) 50%, #6e1b60, rgba(0, 0, 0, 0) 60%);
+            transition: all 2s;
+        }
+
+        #poda:hover>.darkBorderBg::before {
+            transform: translate(-50%, -50%) rotate(-98deg);
+        }
+
+        #poda:hover>.glow::before {
+            transform: translate(-50%, -50%) rotate(-120deg);
+        }
+
+        #poda:hover>.white::before {
+            transform: translate(-50%, -50%) rotate(-97deg);
+        }
+
+        #poda:hover>.border::before {
+            transform: translate(-50%, -50%) rotate(-110deg);
+        }
+
+        #poda:focus-within>.darkBorderBg::before {
+            transform: translate(-50%, -50%) rotate(442deg);
+            transition: all 4s;
+        }
+
+        #poda:focus-within>.glow::before {
+            transform: translate(-50%, -50%) rotate(420deg);
+            transition: all 4s;
+        }
+
+        #poda:focus-within>.white::before {
+            transform: translate(-50%, -50%) rotate(443deg);
+            transition: all 4s;
+        }
+
+        #poda:focus-within>.border::before {
+            transform: translate(-50%, -50%) rotate(430deg);
+            transition: all 4s;
+        }
+
+        .glow {
+            overflow: hidden;
+            filter: blur(30px);
+            opacity: 0.4;
+            max-height: 130px;
+            max-width: 354px;
+        }
+
+        .glow:before {
+            content: "";
+            z-index: -2;
+            text-align: center;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(60deg);
+            position: absolute;
+            width: 999px;
+            height: 999px;
+            background-repeat: no-repeat;
+            background-position: 0 0;
+            background-image: conic-gradient(#000, #402fb5 5%, #000 38%, #000 50%, #cf30aa 60%, #000 87%);
+            transition: all 2s;
+        }
+
+        #filter-icon {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            max-height: 40px;
+            max-width: 38px;
+            height: 100%;
+            width: 100%;
+            isolation: isolate;
+            overflow: hidden;
+            border-radius: 10px;
+            background: linear-gradient(180deg, #161329, black, #1d1b4b);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        #filter-icon:hover {
+            transform: scale(1.05);
+        }
+
+        .filterBorder {
+            height: 42px;
+            width: 40px;
+            position: absolute;
+            overflow: hidden;
+            top: 7px;
+            right: 7px;
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        .filterBorder::before {
+            content: "";
+            text-align: center;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(90deg);
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background-repeat: no-repeat;
+            background-position: 0 0;
+            filter: brightness(1.35);
+            background-image: conic-gradient(rgba(0, 0, 0, 0), #3d3a4f, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0) 50%, #3d3a4f, rgba(0, 0, 0, 0) 100%);
+            animation: rotate 4s linear infinite;
+        }
+
+        @keyframes rotate {
+            100% {
+                transform: translate(-50%, -50%) rotate(450deg);
+            }
+        }
+
+        #main {
+            position: relative;
+        }
+
+        #search-icon {
+            position: absolute;
+            left: 20px;
+            top: 15px;
+            pointer-events: none;
+        }
+
+        /* Filter Panel Styles */
+        .chip {
+            padding: 8px 16px;
+            background: rgba(20, 20, 30, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 20px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .chip:hover {
+            background: rgba(30, 30, 40, 0.8);
+        }
+
+        .chip.active {
+            background: linear-gradient(135deg, #a099d8, #cf30aa);
+            border-color: transparent;
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-toggle {
+            padding: 10px 16px;
+            background: rgba(20, 20, 30, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 8px;
+            background: rgba(20, 20, 30, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            min-width: 150px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .dropdown-item {
+            display: block;
+            width: 100%;
+            padding: 10px 16px;
+            background: none;
+            border: none;
+            color: #fff;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(160, 153, 216, 0.2);
+        }
+
+        .filter-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: rgba(10, 10, 15, 0.98);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(255, 255, 255, 0.12);
+            z-index: 9998;
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+        }
+
+        .filter-panel.open {
+            right: 0;
+        }
+
+        .filter-panel-content {
+            padding: 2rem;
+            padding-top: 6rem;
+        }
+
+        .filter-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9997;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        .filter-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .chip-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+    </style>
+</head>
+
+<body class="bg-black text-white">
+    <custom-navbar></custom-navbar>
+    <div class="h-20"></div>
+
+    <main class="container mx-auto px-4 py-6">
+        <h1 class="text-3xl font-bold mb-6">All Movies</h1>
+
+        <!-- Animated Search Bar -->
+        <div class="mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+            <div id="poda">
+                <div class="glow"></div>
+                <div class="darkBorderBg"></div>
+                <div class="darkBorderBg"></div>
+                <div class="darkBorderBg"></div>
+                <div class="white"></div>
+                <div class="border"></div>
+                <div id="main">
+                    <input placeholder="Search movies..." type="text" id="searchInput" class="input" />
+                    <div id="input-mask"></div>
+                    <div id="pink-mask"></div>
+                    <div class="filterBorder"></div>
+                    <div id="filter-icon">
+                        <svg preserveAspectRatio="none" height="27" width="27" viewBox="4.8 4.56 14.832 15.408"
+                            fill="none">
+                            <path
+                                d="M8.16 6.65002H15.83C16.47 6.65002 16.99 7.17002 16.99 7.81002V9.09002C16.99 9.56002 16.7 10.14 16.41 10.43L13.91 12.64C13.56 12.93 13.33 13.51 13.33 13.98V16.48C13.33 16.83 13.1 17.29 12.81 17.47L12 17.98C11.24 18.45 10.2 17.92 10.2 16.99V13.91C10.2 13.5 9.97 12.98 9.73 12.69L7.52 10.36C7.23 10.08 7 9.55002 7 9.20002V7.87002C7 7.17002 7.52 6.65002 8.16 6.65002Z"
+                                stroke="#d6d6e6" stroke-width="1" stroke-miterlimit="10" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <div id="search-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" viewBox="0 0 24 24" stroke-width="2"
+                            stroke-linejoin="round" stroke-linecap="round" height="24" fill="none">
+                            <circle stroke="url(#search)" r="8" cy="11" cx="11" />
+                            <line stroke="url(#searchl)" y2="16.65" y1="22" x2="16.65" x1="22" />
+                            <defs>
+                                <linearGradient gradientTransform="rotate(50)" id="search">
+                                    <stop stop-color="#f8e7f8" offset="0%" />
+                                    <stop stop-color="#b6a9b7" offset="50%" />
+                                </linearGradient>
+                                <linearGradient id="searchl">
+                                    <stop stop-color="#b6a9b7" offset="0%" />
+                                    <stop stop-color="#837484" offset="50%" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <div id="movieCountBadge"
+                    style="height: 56px; padding: 0 1.5rem; border-radius: 10px; background: linear-gradient(135deg, rgba(160, 153, 216, 0.1), rgba(207, 48, 170, 0.1)); border: 1px solid rgba(160, 153, 216, 0.3); backdrop-filter: blur(10px); display: flex; align-items: center; gap: 0.5rem;">
+                    <span id="filteredMovieCount"
+                        style="font-size: 1.3rem; font-weight: 700; background: linear-gradient(135deg, #a099d8 0%, #cf30aa 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">0</span>
+                    <span style="font-size: 0.95rem; color: rgba(255, 255, 255, 0.7);">Movies</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Movies Grid -->
+        <div id="moviesGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <!-- Movies will be inserted here -->
+        </div>
+    </main>
+
+    <!-- Filter Panel Overlay -->
+    <div class="filter-overlay" id="filterOverlay"></div>
+
+    <!-- Filter Panel -->
+    <div id="filterPanel" class="filter-panel">
+        <div class="filter-panel-content">
+            <h3 class="text-xl font-bold mb-4">Filters</h3>
+
+            <div class="mb-4">
+                <label class="text-sm text-gray-400 mb-2 block">Genre</label>
+                <div class="chip-list" id="genreChips"></div>
+            </div>
+
+            <div class="mb-4">
+                <label class="text-sm text-gray-400 mb-2 block">Language</label>
+                <div class="chip-list" id="languageChips"></div>
+            </div>
+
+            <div class="mb-4">
+                <label class="text-sm text-gray-400 mb-2 block">Format</label>
+                <div class="dropdown" data-name="format">
+                    <button class="dropdown-toggle" aria-expanded="false">Format ▾</button>
+                    <div class="dropdown-menu" hidden>
+                        <button class="dropdown-item" data-value="">All</button>
+                        <button class="dropdown-item" data-value="2D">2D</button>
+                        <button class="dropdown-item" data-value="3D">3D</button>
+                        <button class="dropdown-item" data-value="IMAX">IMAX</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="text-sm text-gray-400 mb-2 block">Rating</label>
+                <div class="dropdown" data-name="rating">
+                    <button class="dropdown-toggle" aria-expanded="false">Rating ▾</button>
+                    <div class="dropdown-menu" hidden>
+                        <button class="dropdown-item" data-value="">All</button>
+                        <button class="dropdown-item" data-value="7">7+</button>
+                        <button class="dropdown-item" data-value="8">8+</button>
+                        <button class="dropdown-item" data-value="9">9+</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="text-sm text-gray-400 mb-2 block">Year</label>
+                <div class="dropdown" data-name="year">
+                    <button class="dropdown-toggle" aria-expanded="false">Year ▾</button>
+                    <div class="dropdown-menu" hidden>
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="text-sm text-gray-400 mb-2 block">Sort By</label>
+                <div class="dropdown" data-name="sort">
+                    <button class="dropdown-toggle" aria-expanded="false">Popular ▾</button>
+                    <div class="dropdown-menu" hidden>
+                        <button class="dropdown-item" data-value="popular">Popular</button>
+                        <button class="dropdown-item" data-value="newest">Newest</button>
+                        <button class="dropdown-item" data-value="rating">Rating</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="activeFilters" class="text-sm text-gray-400 mt-4">Showing 0 movies</div>
+        </div>
+    </div>
+
+    <custom-footer></custom-footer>
+
+    <script src="js/api.js"></script>
+    <script src="components/navbar.js"></script>
+    <script src="components/footer.js"></script>
+
+    <script>
+        let movies = [];
+        const unique = a => [...new Set(a)];
+
+        let allGenres = [];
+        let allLangs = [];
+        let allYears = [];
+
+        const genreChipsEl = document.getElementById("genreChips");
+        const languageChipsEl = document.getElementById("languageChips");
+        const moviesGrid = document.getElementById("moviesGrid");
+        const searchInput = document.getElementById("searchInput");
+        const yearDropdown = document.querySelector('[data-name="year"]');
+        const formatDropdown = document.querySelector('[data-name="format"]');
+        const ratingDropdown = document.querySelector('[data-name="rating"]');
+        const sortDropdown = document.querySelector('[data-name="sort"]');
+        const activeFilters = document.getElementById("activeFilters");
+        const filterPanel = document.getElementById("filterPanel");
+        const filterOverlay = document.getElementById("filterOverlay");
+        const filterIcon = document.getElementById("filter-icon");
+        const filteredMovieCount = document.getElementById("filteredMovieCount");
+
+        let state = {
+            genres: new Set(),
+            languages: new Set(),
+            format: "",
+            minRating: null,
+            year: "",
+            q: "",
+            sort: "popular"
+        };
+
+        // Filter panel toggle
+        filterIcon.addEventListener('click', () => {
+            filterPanel.classList.toggle('open');
+            filterOverlay.classList.toggle('open');
+        });
+
+        filterOverlay.addEventListener('click', () => {
+            filterPanel.classList.remove('open');
+            filterOverlay.classList.remove('open');
+        });
+
+        function chip(text, key, container) {
+            const el = document.createElement("button");
+            el.className = "chip";
+            el.textContent = text;
+            el.addEventListener("click", () => {
+                const set = (key === "genre" ? state.genres : state.languages);
+                if (set.has(text)) {
+                    set.delete(text);
+                    el.classList.remove("active");
+                } else {
+                    set.add(text);
+                    el.classList.add("active");
+                }
+                render();
+            });
+            container.appendChild(el);
+        }
+
+        function escapeHtml(s) {
+            const div = document.createElement("div");
+            div.textContent = s;
+            return div.innerHTML;
+        }
+
+        function makeCard(m) {
+            const card = document.createElement("div");
+            card.className = "movie-card-container";
+            const hours = Math.floor(m.duration / 60);
+            const mins = m.duration % 60;
+
+            card.innerHTML = `
+                <div class="movie-card">
+                    <div class="movie-thumb-wrapper">
+                        <img src="${escapeHtml(m.img)}" class="movie-thumb" alt="${escapeHtml(m.title)}" />
+                    </div>
+
+                    ${m.badge ? `
+                    <div class="absolute top-2 right-2 bg-primary-500 text-white text-xs font-bold px-2 py-1 rounded z-10">
+                        ${escapeHtml(m.badge)}
+                    </div>
+                    ` : ''}
+
+                    <div class="movie-content">
+                        <h3 class="font-bold text-lg mb-1">${escapeHtml(m.title)}</h3>
+
+                        <div class="flex items-center text-sm text-gray-300 mb-2">
+                            <span>${escapeHtml(m.age)}</span>
+                            <span class="mx-2">•</span>
+                            <span>${hours}h ${mins}m</span>
+                        </div>
+
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <i data-feather="star" class="w-4 h-4 text-yellow-400"></i>
+                                <span class="ml-1 font-medium">${m.rating}</span>
+                            </div>
+
+                            <a href="book.html?movie=${encodeURIComponent(m.title)}" class="book-btn">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            setTimeout(() => {
+                const movieCard = card.querySelector('.movie-card');
+                if (movieCard) movieCard.classList.add('show');
+            }, 50);
+
+            return card;
+        }
+
+        function render() {
+            state.q = searchInput.value.trim().toLowerCase();
+
+            function matches(m) {
+                if (state.q && !m.title.toLowerCase().includes(state.q)) return false;
+                if (state.genres.size && !state.genres.has(m.genre)) return false;
+                if (state.languages.size && !state.languages.has(m.language)) return false;
+                if (state.format && m.format !== state.format) return false;
+                if (state.minRating && m.rating < state.minRating) return false;
+                if (state.year && m.year !== +state.year) return false;
+                return true;
+            }
+
+            let filtered = movies.filter(matches);
+
+            filtered = [...filtered].sort((a, b) => {
+                if (state.sort === "newest") return b.year - a.year;
+                if (state.sort === "rating") return b.rating - a.rating;
+                return (b.rating - a.rating) || (b.year - a.year);
+            });
+
+            filteredMovieCount.textContent = filtered.length;
+            activeFilters.textContent = `Showing ${filtered.length} movies`;
+
+            moviesGrid.innerHTML = "";
+            filtered.forEach((m, index) => {
+                const card = makeCard(m);
+                moviesGrid.appendChild(card);
+            });
+
+            if (window.feather) feather.replace();
+        }
+
+        function debounce(fn, wait = 180) {
+            let t;
+            return function (...args) {
+                clearTimeout(t);
+                t = setTimeout(() => fn.apply(this, args), wait);
+            }
+        }
+
+        searchInput.addEventListener("input", debounce(() => render(), 200));
+
+        function closeAllDropdowns() {
+            document.querySelectorAll('.dropdown-menu').forEach(menu => { menu.hidden = true; });
+            document.querySelectorAll('.dropdown-toggle').forEach(t => t.setAttribute('aria-expanded', 'false'));
+        }
+
+        function setupDropdown(dropdown, kind) {
+            if (!dropdown) return;
+            const toggle = dropdown.querySelector('.dropdown-toggle');
+            const menu = dropdown.querySelector('.dropdown-menu');
+
+            toggle.addEventListener('click', (e) => {
+                const expanded = toggle.getAttribute('aria-expanded') === 'true';
+                closeAllDropdowns();
+                toggle.setAttribute('aria-expanded', String(!expanded));
+                menu.hidden = expanded;
+                if (!expanded) { menu.hidden = false; }
+            });
+
+            menu.addEventListener('click', (e) => {
+                const item = e.target.closest('.dropdown-item');
+                if (!item) return;
+                const val = item.getAttribute('data-value');
+
+                if (kind === 'format') {
+                    state.format = val || '';
+                    toggle.textContent = (item.textContent || 'Format') + ' ▾';
+                } else if (kind === 'rating') {
+                    state.minRating = val ? +val : null;
+                    toggle.textContent = (item.textContent || 'Rating') + ' ▾';
+                } else if (kind === 'sort') {
+                    state.sort = val || 'popular';
+                    toggle.textContent = (item.textContent || 'Sort') + ' ▾';
+                } else if (kind === 'year') {
+                    state.year = val || '';
+                    toggle.textContent = (item.textContent || 'Year') + ' ▾';
+                }
+
+                menu.hidden = true;
+                toggle.setAttribute('aria-expanded', 'false');
+                render();
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.dropdown')) return;
+            closeAllDropdowns();
+        });
+
+        async function initPage() {
+            try {
+                showLoading(moviesGrid);
+
+                const response = await fetchMovies();
+                if (response.success && response.data) {
+                    movies = response.data;
+
+                    allGenres = unique(movies.map(m => m.genre)).sort();
+                    allLangs = unique(movies.map(m => m.language)).sort();
+                    allYears = unique(movies.map(m => m.year)).sort((a, b) => b - a);
+
+                    allGenres.forEach(g => chip(g, "genre", genreChipsEl));
+                    allLangs.forEach(l => chip(l, "language", languageChipsEl));
+
+                    if (yearDropdown) {
+                        const menu = yearDropdown.querySelector('.dropdown-menu');
+                        if (menu) {
+                            const def = document.createElement('button');
+                            def.className = 'dropdown-item';
+                            def.setAttribute('data-value', '');
+                            def.textContent = 'All';
+                            menu.appendChild(def);
+
+                            allYears.forEach(y => {
+                                const btn = document.createElement('button');
+                                btn.className = 'dropdown-item';
+                                btn.setAttribute('data-value', String(y));
+                                btn.textContent = String(y);
+                                menu.appendChild(btn);
+                            });
+                        }
+                    }
+
+                    setupDropdown(formatDropdown, 'format');
+                    setupDropdown(ratingDropdown, 'rating');
+                    setupDropdown(sortDropdown, 'sort');
+                    setupDropdown(yearDropdown, 'year');
+
+                    render();
+                } else {
+                    showError(moviesGrid, 'Failed to load movies');
+                }
+            } catch (error) {
+                console.error('Error loading movies:', error);
+                showError(moviesGrid, 'Error loading movies. Please try again.', initPage);
+            }
+        }
+
+        initPage();
+    </script>
+
+    <script>
+        if (window.feather) feather.replace();
+    </script>
+
+</body>
+
+</html>

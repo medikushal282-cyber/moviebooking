@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Payment – ReelRush Cinematics</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0a0a0f, #1a0b1f);
+            color: #e6eef6;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+        }
+
+        .payment-container {
+            background: rgba(20, 20, 30, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 500px;
+            margin: 4rem auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #a099d8, #cf30aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+        }
+
+        .payment-option {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .payment-option:hover,
+        .payment-option.selected {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #cf30aa;
+        }
+
+        .payment-option img {
+            height: 30px;
+            object-fit: contain;
+        }
+
+        .pay-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #cf30aa, #a099d8);
+            border: none;
+            border-radius: 0.5rem;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 1rem;
+        }
+
+        .pay-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(207, 48, 170, 0.4);
+        }
+
+        .qr-code {
+            display: none;
+            text-align: center;
+            margin: 1rem 0;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            color: #a0aec0;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <custom-navbar></custom-navbar>
+
+    <main class="container mx-auto px-4">
+        <div class="payment-container">
+            <h1 class="section-title">Secure Payment</h1>
+
+            <div class="mb-6">
+                <div class="summary-row">
+                    <span>Movie</span>
+                    <span id="movie-name" class="text-white">Loading...</span>
+                </div>
+                <div class="summary-row">
+                    <span>Theatre</span>
+                    <span id="theatre-name" class="text-white">Loading...</span>
+                </div>
+                <div class="summary-row">
+                    <span>Seats</span>
+                    <span id="seat-list" class="text-white">Loading...</span>
+                </div>
+                <div class="total-row">
+                    <span>Total Amount</span>
+                    <span id="total-amount">₹0</span>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-4 text-gray-300">Select Payment Method</h3>
+
+                <div class="payment-option" onclick="selectMethod(this, 'upi')">
+                    <div class="flex items-center gap-3">
+                        <i data-feather="smartphone" class="text-green-400"></i>
+                        <span>UPI (GPay, PhonePe, Paytm)</span>
+                    </div>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/1200px-UPI-Logo-vector.svg.png"
+                        alt="UPI" style="height: 20px;">
+                </div>
+
+                <div id="upi-qr" class="qr-code">
+                    <div class="bg-white p-4 rounded-lg inline-block">
+                        <!-- Placeholder QR Code -->
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=bookyourshow@upi&pn=BookYourShow&mc=0000&tid=1234567890&tr=1234567890&tn=MovieTicketBooking&am=100&cu=INR"
+                            alt="Scan to Pay">
+                    </div>
+                    <p class="text-sm text-gray-400 mt-2">Scan with any UPI App</p>
+                </div>
+
+                <div class="payment-option" onclick="selectMethod(this, 'card')">
+                    <div class="flex items-center gap-3">
+                        <i data-feather="credit-card" class="text-blue-400"></i>
+                        <span>Credit / Debit Card</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/1280px-Mastercard-logo.svg.png"
+                            alt="Mastercard">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/2560px-Visa_Inc._logo.svg.png"
+                            alt="Visa">
+                    </div>
+                </div>
+
+                <div class="payment-option" onclick="selectMethod(this, 'netbanking')">
+                    <div class="flex items-center gap-3">
+                        <i data-feather="globe" class="text-purple-400"></i>
+                        <span>Net Banking</span>
+                    </div>
+                </div>
+            </div>
+
+            <button id="pay-btn" class="pay-btn" onclick="processPayment()">Pay ₹0</button>
+        </div>
+    </main>
+
+    <custom-footer></custom-footer>
+    <script src="js/api.js"></script>
+    <script src="components/navbar.js"></script>
+    <script src="components/footer.js"></script>
+
+    <script>
+        if (window.feather) feather.replace();
+
+        const urlParams = new URLSearchParams(window.location.search);
+
+        let bookingData = null;
+        try {
+            bookingData = JSON.parse(sessionStorage.getItem('pendingBooking'));
+        } catch (e) {
+            console.error(e);
+        }
+
+        if (!bookingData) {
+            alert('No booking found. Redirecting to home.');
+            window.location.href = 'index.html';
+        }
+
+        // Generate a unique transaction ID
+        const transactionId = 'TXN_' + Math.random().toString(36).substr(2, 9).toUpperCase();
+
+        // Render details
+        document.getElementById('movie-name').textContent = bookingData.movieTitle;
+        document.getElementById('theatre-name').textContent = bookingData.theatreName;
+        document.getElementById('seat-list').textContent = bookingData.seats.map(s => s.row + s.number).join(', ');
+        document.getElementById('total-amount').textContent = '₹' + bookingData.totalAmount;
+        document.getElementById('pay-btn').textContent = 'Pay ₹' + bookingData.totalAmount;
+
+        // Update QR code to point to the simulation endpoint
+        // Using window.location.origin to get the current host (localhost:5501 usually)
+        // Pointing to the SERVER endpoint (usually port 5000)
+        // We need to know the server URL. API_BASE_URL is usually defined in api.js
+
+        // Construct the verification URL that the user "scans"
+        // Since we can't easily scan localhost on phone, we'll assume they open it on the same device or we provide a link.
+        // For the demo, we'll make the QR code data the URL to the simulate endpoint.
+        const verifyUrl = `${API_BASE_URL}/payment/simulate/${transactionId}`;
+
+        const qrImg = document.querySelector('#upi-qr img');
+        if (qrImg) {
+            qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(verifyUrl)}`;
+
+            // Add a clickable link for testing convenience
+            const link = document.createElement('a');
+            link.href = verifyUrl;
+            link.target = '_blank';
+            link.className = 'text-xs text-blue-400 block mt-1 hover:underline';
+            link.textContent = '(Click here to simulate scan/payment)';
+            document.getElementById('upi-qr').appendChild(link);
+        }
+
+        function selectMethod(el, method) {
+            document.querySelectorAll('.payment-option').forEach(opt => opt.classList.remove('selected'));
+            document.getElementById('upi-qr').style.display = 'none';
+            el.classList.add('selected');
+
+            if (method === 'upi') {
+                document.getElementById('upi-qr').style.display = 'block';
+                startPolling();
+            }
+        }
+
+        let pollingInterval;
+        function startPolling() {
+            if (pollingInterval) clearInterval(pollingInterval);
+
+            pollingInterval = setInterval(async () => {
+                try {
+                    const res = await fetch(`${API_BASE_URL}/payment/status/${transactionId}`);
+                    const data = await res.json();
+
+                    if (data.status === 'completed') {
+                        clearInterval(pollingInterval);
+                        completeBooking();
+                    }
+                } catch (e) {
+                    console.error('Polling error', e);
+                }
+            }, 2000);
+        }
+
+        async function processPayment() {
+            // Manual click handler (for Card/NetBanking or manual UPI confirm)
+            // We can just trigger the same completion logic
+            completeBooking();
+        }
+
+        async function completeBooking() {
+            const btn = document.getElementById('pay-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i data-feather="loader" class="animate-spin inline mr-2"></i> Finalizing...';
+            if (window.feather) feather.replace();
+
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) throw new Error('Please login again');
+
+                const response = await fetch(`${API_BASE_URL}/bookings`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        showtimeId: bookingData.showtimeId,
+                        seats: bookingData.seats
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.status === 401) {
+                    alert('Session expired. Please login again to complete your booking.');
+                    const currentUrl = encodeURIComponent(window.location.href);
+                    window.location.href = `login.html?redirect=${currentUrl}`;
+                    return;
+                }
+
+                if (data.success) {
+                    // Store confirmed booking for the next page
+                    sessionStorage.setItem('confirmedBooking', JSON.stringify(bookingData));
+                    sessionStorage.removeItem('pendingBooking');
+
+                    window.location.href = 'ticket-confirmed.html';
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                console.error('Payment failed:', error);
+                alert(`Booking failed: ${error.message}`);
+                btn.disabled = false;
+                btn.textContent = 'Retry Payment';
+            }
+        }
+    </script>
+</body>
+
+</html>

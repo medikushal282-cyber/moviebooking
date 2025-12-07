@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  # MongoDB - Database
+  mongodb:
+    image: mongo:latest
+    container_name: movie_mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - movie_network
+
+  # Redis - Caching & Session Management
+  redis:
+    image: redis:alpine
+    container_name: movie_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - movie_network
+
+  # RabbitMQ - Message Broker
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: movie_rabbitmq
+    ports:
+      - "5672:5672"   # AMQP protocol port
+      - "15672:15672" # Management UI port
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - movie_network
+
+volumes:
+  mongo_data:
+  redis_data:
+  rabbitmq_data:
+
+networks:
+  movie_network:
+    driver: bridge

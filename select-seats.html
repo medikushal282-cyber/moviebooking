@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Seat Selection – ReelRush Cinematics</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0a0a0f, #1a0b1f);
+            color: #e6eef6;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+        }
+
+        .seat-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 0.5rem;
+            max-width: 500px;
+            margin: 2rem auto;
+        }
+
+        .seat {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            aspect-ratio: 1;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .seat:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .seat.selected {
+            background: linear-gradient(135deg, #cf30aa, #a099d8);
+            border-color: #fff;
+        }
+
+        .info-box {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .confirm-btn {
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #cf30aa, #a099d8);
+            border: none;
+            border-radius: 0.5rem;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .confirm-btn:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body>
+    <custom-navbar></custom-navbar>
+    <main class="container mx-auto px-4 py-8">
+        <h1 class="section-title text-center">Select Seats</h1>
+        <div class="info-box">
+            <p id="movie-info" class="text-lg font-medium"></p>
+            <p id="theatre-info" class="text-md"></p>
+        </div>
+        <div class="seat-grid" id="seat-grid"></div>
+        <div id="payment-summary" class="text-center mt-4"></div>
+        <div class="text-center mt-6">
+            <button class="confirm-btn" id="confirm-btn">Confirm Booking</button>
+        </div>
+    </main>
+    <custom-footer></custom-footer>
+    <script src="js/api.js"></script>
+    <script src="components/navbar.js"></script>
+    <script src="components/footer.js"></script>
+    <script>
+        if (window.feather) feather.replace();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const showtimeId = urlParams.get('id'); // Expecting showtime ID
+
+        // Fallback for legacy links (movie/theatre names) - would need real IDs in production
+        // For now, we'll try to fetch the showtime details if ID is present
+
+        const seatGrid = document.getElementById('seat-grid');
+        const confirmBtn = document.getElementById('confirm-btn');
+        let selectedSeats = new Set();
+        let currentShowtime = null;
+        let socket = null;
+
+        async function init() {
+            if (!showtimeId) {
+                alert('No showtime specified. Please select a showtime first.');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            try {
+                // Fetch showtime details
+                const response = await fetch(`${API_BASE_URL}/showtimes/${showtimeId}`);
+                const data = await response.json();
+
+                if (!data.success) throw new Error(data.error);
+
+                currentShowtime = data.data;
+                renderPageInfo();
+                renderSeats(currentShowtime.seats);
+                initWebSocket();
+
+            } catch (error) {
+                console.error('Error loading showtime:', error);
+                document.querySelector('.info-box').innerHTML = `<p class="text-red-500">Error loading showtime details.</p>`;
+            }
+        }
+
+        function renderPageInfo() {
+            document.getElementById('theatre-info').textContent = `Theatre: ${currentShowtime.theatre.name}`;
+            document.getElementById('movie-info').textContent = `Movie: ${currentShowtime.movie.title}`;
+
+            // Update payment info initially
+            updatePayment();
+        }
+
+        function renderSeats(seats) {
+            seatGrid.innerHTML = '';
+
+            // Group seats by row to determine grid layout
+            // We can use CSS Grid or just flex wrap. 
+            // Since backend sends a flat list with row/number, let's group them.
+
+            // Find max row and col to set grid dimensions if needed, 
+            // or just render them in order if sorted.
+            // Backend sorts by row then number usually, or we can sort here.
+
+            seats.sort((a, b) => {
+                if (a.row === b.row) return a.number - b.number;
+                return a.row.localeCompare(b.row);
+            });
+
+            // We need to know how many columns to set grid-template-columns dynamically
+            // or we can just use a flex container with breaks.
+            // Let's try to infer columns from the data or just use a flexible grid.
+
+            // A simple approach for dynamic grid:
+            // Use the 'row' property to create visual rows.
+
+            const rows = {};
+            seats.forEach(seat => {
+                if (!rows[seat.row]) rows[seat.row] = [];
+                rows[seat.row].push(seat);
+            });
+
+            // Clear grid and set it to flex-col for rows
+            seatGrid.className = 'flex flex-col gap-2 items-center max-w-3xl mx-auto my-8';
+            seatGrid.style.display = 'flex';
+            seatGrid.style.gridTemplateColumns = 'none';
+
+            Object.keys(rows).forEach(rowLabel => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'flex gap-2 justify-center';
+
+                rows[rowLabel].forEach(seat => {
+                    const seatEl = document.createElement('div');
+                    seatEl.className = `seat ${seat.status === 'Booked' ? 'occupied bg-gray-600 cursor-not-allowed' : ''}`;
+                    seatEl.dataset.id = `${seat.row}${seat.number}`; // ID for WebSocket updates
+                    seatEl.dataset.row = seat.row;
+                    seatEl.dataset.number = seat.number;
+                    seatEl.title = `${seat.row}${seat.number} - ${seat.status}`;
+
+                    if (seat.status === 'Available') {
+                        seatEl.onclick = () => toggleSeat(seatEl, seat.row, seat.number);
+                    }
+
+                    const label = document.createElement('span');
+                    label.className = 'seat-label text-xs text-gray-200 pointer-events-none';
+                    label.textContent = `${seat.row}${seat.number}`;
+
+                    seatEl.appendChild(label);
+                    rowDiv.appendChild(seatEl);
+                });
+
+                seatGrid.appendChild(rowDiv);
+            });
+        }
+
+        function toggleSeat(element, row, number) {
+            const seatId = `${row}${number}`;
+            if (element.classList.contains('selected')) {
+                element.classList.remove('selected');
+                selectedSeats.delete(seatId);
+            } else {
+                element.classList.add('selected');
+                selectedSeats.add(seatId);
+            }
+            updatePayment();
+        }
+
+        function updatePayment() {
+            const count = selectedSeats.size;
+            const total = count * (currentShowtime ? currentShowtime.price : 0);
+            const seatsList = Array.from(selectedSeats).join(', ') || 'None';
+            document.getElementById('payment-summary').innerHTML = `
+                <p class="text-lg">Selected Seats: <span class="text-primary-400 font-bold">${seatsList}</span></p>
+                <p class="text-xl font-bold mt-2">Total: ₹${total}</p>
+            `;
+        }
+
+        function initWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            socket = new WebSocket(`${protocol}//${window.location.host}/ws/seats/`);
+
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.type === 'seat_update' && data.showtimeId === showtimeId) {
+                    data.seats.forEach(updatedSeat => {
+                        // Find the seat element
+                        // We need a way to select it. We used dataset.id = row+number
+                        const seatId = `${updatedSeat.row}${updatedSeat.number}`;
+                        const seatEl = document.querySelector(`.seat[data-id="${seatId}"]`);
+
+                        if (seatEl) {
+                            if (updatedSeat.status === 'Booked') {
+                                seatEl.classList.remove('selected');
+                                seatEl.classList.add('occupied', 'bg-gray-600', 'cursor-not-allowed');
+                                seatEl.onclick = null;
+                                seatEl.title = `${updatedSeat.row}${updatedSeat.number} - Booked`;
+
+                                // If we had it selected, deselect it
+                                if (selectedSeats.has(seatId)) {
+                                    selectedSeats.delete(seatId);
+                                    updatePayment();
+                                    alert(`Seat ${seatId} has just been booked by someone else.`);
+                                }
+                            }
+                        }
+                    });
+                }
+            };
+        }
+
+        confirmBtn.addEventListener('click', async () => {
+            if (selectedSeats.size === 0) {
+                alert('Please select at least one seat.');
+                return;
+            }
+
+            // Need authentication token
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Please login to book tickets.');
+                window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
+                return;
+            }
+
+            const seatsArray = Array.from(selectedSeats).map(id => {
+                const match = id.match(/([A-Z]+)(\d+)/);
+                return {
+                    row: match[1],
+                    number: parseInt(match[2])
+                };
+            });
+
+            // Calculate total
+            const totalAmount = seatsArray.length * (currentShowtime ? currentShowtime.price : 0);
+
+            // Store booking details in sessionStorage to pass to payment page
+            const bookingDetails = {
+                showtimeId: showtimeId,
+                seats: seatsArray,
+                movieTitle: currentShowtime.movie.title,
+                theatreName: currentShowtime.theatre.name,
+                totalAmount: totalAmount
+            };
+
+            sessionStorage.setItem('pendingBooking', JSON.stringify(bookingDetails));
+
+            // Redirect to payment page
+            window.location.href = 'payment.html';
+        });
+
+        // Start
+        init();
+    </script>
+</body>
+
+</html>

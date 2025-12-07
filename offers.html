@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Offers — BookYourShow</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0a0a0f, #1a0b1f);
+            color: #e6eef6;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .offers-container {
+            background: rgba(20, 20, 30, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            width: 100%;
+            max-width: 960px;
+            margin-top: 4rem;
+            margin-bottom: 4rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .offers-container h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #a099d8, #cf30aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .offer-card {
+            background: rgba(30, 30, 40, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .offer-card h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #a099d8, #cf30aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .offer-card p {
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .apply-btn {
+            align-self: flex-start;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #cf30aa, #a099d8);
+            border: none;
+            border-radius: 0.5rem;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .apply-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #a099d8, #cf30aa);
+            color: #fff;
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.4rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <custom-navbar></custom-navbar>
+    <div class="offers-container">
+        <h1>Special Offers</h1>
+        <!-- Students -->
+        <div class="offer-card" id="offer-students">
+            <h2>Student Discount <span class="badge">Students</span></h2>
+            <p>Get a flat <strong>15% off</strong> on every ticket purchase when you verify your student ID. Valid for
+                all movies.</p>
+            <button class="apply-btn" onclick="alert('Student offer applied (placeholder)')">Apply</button>
+        </div>
+        <!-- Teens (stacks with students) -->
+        <div class="offer-card" id="offer-teens">
+            <h2>Teen Saver <span class="badge">Teens</span> <span class="badge">Stacks with Students</span></h2>
+            <p>Additional <strong>5% off</strong> on top of any existing student discount for ages 13‑19.</p>
+            <button class="apply-btn" onclick="alert('Teen offer applied (placeholder)')">Apply</button>
+        </div>
+        <!-- Loyal / Old Users -->
+        <div class="offer-card" id="offer-loyal">
+            <h2>Loyalty Bonus <span class="badge">Long‑time Customer</span></h2>
+            <p>You've booked more than <strong>30 movies</strong> with us? Enjoy a permanent <strong>10%
+                    discount</strong> on all future tickets.</p>
+            <button class="apply-btn" onclick="alert('Loyalty offer applied (placeholder)')">Apply</button>
+        </div>
+        <!-- Employees of Partner Orgs -->
+        <div class="offer-card" id="offer-employees">
+            <h2>Partner Employee Offer <span class="badge">Employees</span></h2>
+            <p>Employees of our partner companies (e.g., TechCorp, MediaHub) receive a special <strong>12% off</strong>
+                after entering your corporate email.</p>
+            <button class="apply-btn" onclick="alert('Employee offer applied (placeholder)')">Apply</button>
+        </div>
+        <!-- Food Offers -->
+        <div class="offer-card" id="offer-food">
+            <h2>Food Combo Deal <span class="badge">Food</span></h2>
+            <p>Buy a combo of popcorn + drink and get a <strong>20% discount</strong> on the combo when you purchase a
+                ticket.</p>
+            <button class="apply-btn" onclick="alert('Food combo offer applied (placeholder)')">Apply</button>
+        </div>
+        <!-- 90% Monday Offer -->
+        <div class="offer-card" id="offer-monday">
+            <h2>90% Monday Madness <span class="badge">90% Off</span></h2>
+            <p>Every Monday, enjoy a massive <strong>90% discount</strong> on any ticket (GST and service fees are
+                excluded). Use code <code>MON90</code> at checkout.</p>
+            <button class="apply-btn" onclick="alert('90% Monday offer applied (placeholder)')">Apply</button>
+        </div>
+    </div>
+    <script src="components/navbar.js"></script>
+    <script src="components/footer.js"></script>
+    <script>
+        if (window.feather) feather.replace();
+    </script>
+</body>
+
+</html>
