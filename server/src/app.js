@@ -82,6 +82,96 @@ app.get('/api/health', (req, res) => {
     res.json({ success: true, message: 'Server is running' });
 });
 
+// One-time seed endpoint for production (remove after use)
+app.get('/api/seed-database', async (req, res) => {
+    try {
+        const Movie = require('./models/Movie');
+        const Theatre = require('./models/Theatre');
+        const User = require('./models/User');
+        const Showtime = require('./models/Showtime');
+
+        // Check if already seeded
+        const movieCount = await Movie.countDocuments();
+        if (movieCount > 0) {
+            return res.json({ success: false, message: 'Database already has data. Skipping seed.' });
+        }
+
+        // Import seed data
+        const { MOVIES_DATA, THEATRES_DATA } = require('./scripts/seedDatabase');
+
+        // Seed movies
+        const movies = MOVIES_DATA.map(({ id, ...rest }) => rest);
+        await Movie.insertMany(movies);
+
+        // Seed theatres
+        const theatres = THEATRES_DATA.map(({ id, ...rest }) => ({
+            ...rest,
+            seatConfiguration: { rows: 10, cols: 12, aisles: [4, 9] }
+        }));
+        await Theatre.insertMany(theatres);
+
+        // Create admin user
+        const existingAdmin = await User.findOne({ email: 'admin@example.com' });
+        if (!existingAdmin) {
+            await User.create({
+                name: 'Admin User',
+                email: 'admin@example.com',
+                password: 'password123',
+                role: 'admin',
+                phone: '9999999999',
+                emailVerified: true
+            });
+        }
+
+        // Create showtimes
+        const movieDocs = await Movie.find();
+        const theatreDocs = await Theatre.find();
+        const now = new Date();
+
+        for (let i = 0; i < Math.min(movieDocs.length, 10); i++) {
+            const movie = movieDocs[i];
+            const theatre = theatreDocs[i % theatreDocs.length];
+
+            for (let d = 0; d < 3; d++) {
+                const startTime = new Date(now);
+                startTime.setDate(startTime.getDate() + d);
+                startTime.setHours(14 + (i % 8), 0, 0, 0);
+
+                const seats = [];
+                const rowLabels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+                for (let r = 0; r < 10; r++) {
+                    for (let c = 1; c <= 12; c++) {
+                        seats.push({ row: rowLabels[r], number: c, status: 'Available' });
+                    }
+                }
+
+                await Showtime.create({
+                    movie: movie._id,
+                    theatre: theatre._id,
+                    startTime,
+                    endTime: new Date(startTime.getTime() + movie.duration * 60000),
+                    price: 150 + (i * 10),
+                    screen: 1,
+                    seats
+                });
+            }
+        }
+
+        res.json({
+            success: true,
+            message: 'Database seeded successfully!',
+            data: {
+                movies: await Movie.countDocuments(),
+                theatres: await Theatre.countDocuments(),
+                showtimes: await Showtime.countDocuments()
+            }
+        });
+    } catch (error) {
+        console.error('Seed error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // Error handler
 app.use((err, req, res, next) => {
     console.error(err.stack);

@@ -246,4 +246,10 @@ const seedDatabase = async () => {
     }
 };
 
-seedDatabase();
+// Only run if called directly
+if (require.main === module) {
+    seedDatabase();
+}
+
+// Export data for use by API seed endpoint
+module.exports = { MOVIES_DATA, THEATRES_DATA };
