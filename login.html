@@ -209,6 +209,11 @@
             }
         }
 
+        // Dynamic API URL for dev/production
+        const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:5000/api/v1'
+            : `${window.location.origin}/api/v1`;
+
         async function handleSubmit() {
             const btn = document.getElementById('submitBtn');
             const originalText = btn.textContent;
@@ -236,11 +241,11 @@
                         body.phone = identifier;
                     }
 
-                    url = 'http://localhost:5000/api/v1/auth/register';
+                    url = `${API_BASE_URL}/auth/register`;
                 } else {
                     if (!identifier || !password) throw new Error('Please fill all fields');
 
-                    url = 'http://localhost:5000/api/v1/auth/login';
+                    url = `${API_BASE_URL}/auth/login`;
                     body = { email: identifier, password };
                 }
 
