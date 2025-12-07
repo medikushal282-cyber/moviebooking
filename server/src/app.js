@@ -103,6 +103,74 @@ app.get('/api/health', (req, res) => {
     res.json({ success: true, message: 'Server is running' });
 });
 
+// Regenerate showtimes with future dates
+app.get('/api/regenerate-showtimes', async (req, res) => {
+    try {
+        const Movie = require('./models/Movie');
+        const Theatre = require('./models/Theatre');
+        const Showtime = require('./models/Showtime');
+
+        // Delete old showtimes
+        await Showtime.deleteMany({});
+
+        const movies = await Movie.find().limit(20);
+        const theatres = await Theatre.find();
+
+        if (movies.length === 0 || theatres.length === 0) {
+            return res.json({ success: false, message: 'No movies or theatres found' });
+        }
+
+        let count = 0;
+        const now = new Date();
+
+        for (let i = 0; i < movies.length; i++) {
+            const movie = movies[i];
+            // Each movie in 3 random theatres
+            const selectedTheatres = theatres.sort(() => 0.5 - Math.random()).slice(0, 3);
+
+            for (const theatre of selectedTheatres) {
+                // 3 days, 3 shows per day
+                for (let day = 0; day < 3; day++) {
+                    for (let showNum = 0; showNum < 3; showNum++) {
+                        const startTime = new Date(now);
+                        startTime.setDate(startTime.getDate() + day);
+                        startTime.setHours(10 + (showNum * 4), 0, 0, 0); // 10am, 2pm, 6pm
+
+                        // Generate seats
+                        const seats = [];
+                        const rowLabels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+                        for (let r = 0; r < 10; r++) {
+                            for (let c = 1; c <= 12; c++) {
+                                seats.push({ row: rowLabels[r], number: c, status: 'Available' });
+                            }
+                        }
+
+                        await Showtime.create({
+                            movie: movie._id,
+                            theatre: theatre._id,
+                            startTime,
+                            endTime: new Date(startTime.getTime() + (movie.duration || 120) * 60000),
+                            price: 150 + (i * 5),
+                            screen: (showNum % 3) + 1,
+                            seats
+                        });
+                        count++;
+                    }
+                }
+            }
+        }
+
+        res.json({
+            success: true,
+            message: `Created ${count} showtimes for ${movies.length} movies`,
+            data: { showtimes: count }
+        });
+    } catch (error) {
+        console.error('Regenerate showtimes error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // One-time seed endpoint for production (remove after use)
 app.get('/api/seed-database', async (req, res) => {
     try {
