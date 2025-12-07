@@ -133,12 +133,14 @@ app.get('/api/regenerate-showtimes', async (req, res) => {
             const selectedTheatres = theatres.sort(() => 0.5 - Math.random()).slice(0, 3);
 
             for (const theatre of selectedTheatres) {
-                // 3 days, 3 shows per day
-                for (let day = 0; day < 3; day++) {
+                // 3 days starting from tomorrow, 3 shows per day
+                for (let day = 1; day <= 3; day++) {
                     for (let showNum = 0; showNum < 3; showNum++) {
-                        const startTime = new Date(now);
+                        const startTime = new Date();
+                        // Start from tomorrow to ensure future dates
                         startTime.setDate(startTime.getDate() + day);
-                        startTime.setHours(10 + (showNum * 4), 0, 0, 0); // 10am, 2pm, 6pm
+                        // Use fixed hours that work globally: 9am, 2pm, 7pm UTC
+                        startTime.setUTCHours(9 + (showNum * 5), 0, 0, 0);
 
                         // Generate seats
                         const seats = [];
