@@ -28,8 +28,29 @@ const requestLogger = require('./middleware/requestLogger');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
-// Security headers
-app.use(helmet());
+// Security headers - configure CSP to allow CDN scripts
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'",
+                "https://cdn.tailwindcss.com",
+                "https://unpkg.com",
+                "https://cdn.jsdelivr.net",
+                "https://cdnjs.cloudflare.com"],
+            styleSrc: ["'self'", "'unsafe-inline'",
+                "https://cdn.tailwindcss.com",
+                "https://fonts.googleapis.com",
+                "https://unpkg.com"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+            imgSrc: ["'self'", "data:", "https:", "blob:"],
+            connectSrc: ["'self'", "https:", "wss:"],
+            mediaSrc: ["'self'", "https:", "blob:"],
+            frameSrc: ["'self'", "https://www.youtube.com", "https://youtube.com"]
+        }
+    },
+    crossOriginEmbedderPolicy: false
+}));
 
 // Rate limiting
 const limiter = rateLimit({
